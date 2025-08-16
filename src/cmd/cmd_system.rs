@@ -573,6 +573,7 @@ impl AsMut<[u8]> for VersionRsp {
         &mut self.0
     }
 }
+#[cfg(feature = "defmt")]
 impl defmt::Format for VersionRsp {
     fn format(&self, fmt: defmt::Formatter) {
         defmt::write!(fmt, "{:02x}.{:02x}", self.major(), self.minor());
@@ -851,6 +852,7 @@ impl AsMut<[u8]> for TempRsp {
         &mut self.0
     }
 }
+#[cfg(feature = "defmt")]
 impl defmt::Format for TempRsp {
     fn format(&self, fmt: defmt::Formatter) {
         defmt::write!(fmt, "{}.{:02}", self.0[2] as i8, (self.0[3] as u16 * 100) >> 8);

@@ -1,4 +1,3 @@
-use defmt::Format;
 use embedded_hal::digital::v2::OutputPin;
 use embedded_hal_async::spi::SpiBus;
 
@@ -9,7 +8,8 @@ pub use super::cmd::cmd_system::*;
 use super::radio::{set_rx_cmd, set_tx_cmd};
 
 /// Chip Mode: Sleep/Standby/Fs/...
-#[derive(Debug, Format, PartialEq)]
+#[derive(Debug, PartialEq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum ChipMode {
     DeepSleep,
     Sleep(u32),

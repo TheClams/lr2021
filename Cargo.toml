@@ -2,13 +2,22 @@
 name = "lr2021"
 version = "0.1.0"
 edition = "2024"
+license = "MIT"
+description = "Driver for Semtech LR2021"
+repository = "https://github.com/TheClams/lr2021"
+readme = "Readme.md"
+categories = ["embedded", "no-std"]
+keywords = ["driver", "LR2021", "transceiver"]
 
+[features]
+defmt = ["dep:defmt"]
 
 [dependencies]
-defmt = "1.0.1"
 
 embassy-time = { version = "0.4.0", features = ["defmt", "defmt-timestamp-uptime", "tick-hz-32_768", ] }
 embassy-embedded-hal = { version = "0.4.0" }
 
 embedded-hal = "0.2.6"
 embedded-hal-async = { version = "1.0" }
+
+defmt = { version = "1.0.1", optional = true }

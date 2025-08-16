@@ -433,12 +433,14 @@ def gen_rsp(cmd: Command, _category: str, advanced: bool = False) -> str:
     lines.append("}")
 
     if cmd.name == 'GetTemp':
+        lines.append("#[cfg(feature = \"defmt\")]")
         lines.append("impl defmt::Format for TempRsp {")
         lines.append("    fn format(&self, fmt: defmt::Formatter) {")
         lines.append("        defmt::write!(fmt, \"{}.{:02}\", self.0[2] as i8, (self.0[3] as u16 * 100) >> 8);")
         lines.append("    }")
         lines.append("}")
     elif cmd.name == 'GetVersion':
+        lines.append("#[cfg(feature = \"defmt\")]")
         lines.append("impl defmt::Format for VersionRsp {")
         lines.append("    fn format(&self, fmt: defmt::Formatter) {")
         lines.append("        defmt::write!(fmt, \"{:02x}.{:02x}\", self.major(), self.minor());")

@@ -10,7 +10,6 @@ pub mod flrc;
 
 use core::marker::PhantomData;
 
-use defmt::{Format};
 use embassy_time::{with_timeout, Duration, Instant, Timer};
 use embedded_hal::digital::v2::{OutputPin, InputPin};
 use embedded_hal_async::{digital::Wait, spi::SpiBus};
@@ -82,7 +81,8 @@ pub struct Lr2021<O,SPI, M: BusyPin> {
 }
 
 /// Error using the LR2021
-#[derive(Format, Debug)]
+#[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum Lr2021Error {
     /// Unable to Set/Get a pin level
     Pin,

@@ -1,5 +1,3 @@
-use defmt::Format;
-
 use super::Lr2021Error;
 
 /// Status sent at the beginning of each SPI command
@@ -11,7 +9,8 @@ use super::Lr2021Error;
 pub struct Status(u16);
 
 /// Command status
-#[derive(Format, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum CmdStatus {
     Fail = 0, // Last Command could not be executed
     PErr = 1, // Last command had invalid parameters or the OpCode is unknown
@@ -21,7 +20,8 @@ pub enum CmdStatus {
 }
 
 /// Reset Source
-#[derive(Format, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum ResetSrc {
     Cleared = 0,
     Analog = 1,
@@ -33,7 +33,8 @@ pub enum ResetSrc {
 }
 
 /// Chip Mode
-#[derive(Format)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum ChipModeStatus {
     Sleep = 0,
     Rc    = 1,
@@ -115,6 +116,7 @@ impl Status {
 
 }
 
+#[cfg(feature = "defmt")]
 impl defmt::Format for Status {
     fn format(&self, fmt: defmt::Formatter) {
         match self.cmd() {
@@ -305,7 +307,8 @@ impl Intr {
 
 }
 
-impl Format for Intr {
+#[cfg(feature = "defmt")]
+impl defmt::Format for Intr {
     fn format(&self, f: defmt::Formatter) {
         defmt::write!(f, "Intr: ");
         if self.none() {
