@@ -8,6 +8,7 @@ pub mod ble;
 pub mod cmd;
 pub mod flrc;
 pub mod ook;
+pub mod fsk;
 
 use core::marker::PhantomData;
 
