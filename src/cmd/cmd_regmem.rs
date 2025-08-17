@@ -54,7 +54,7 @@ pub fn read_reg_mem32_req(addr: u32, len: u8) -> [u8; 6] {
 
 /// Response for ReadRegMem32 command
 #[derive(Default)]
-pub struct ReadRegMem32Rsp([u8; 2]);
+pub struct ReadRegMem32Rsp([u8; 6]);
 
 impl ReadRegMem32Rsp {
     /// Create a new response buffer
@@ -66,7 +66,14 @@ impl ReadRegMem32Rsp {
     pub fn status(&mut self) -> Status {
         Status::from_slice(&self.0[..2])
     }
-    // TODO: Implement accessor for variable length field 'data'
+
+    /// Variable length array of 32-bit data words read from memory (len words, each 4 bytes)
+    pub fn value(&self) -> u32 {
+        (self.0[5] as u32) |
+        ((self.0[4] as u32) << 8) |
+        ((self.0[3] as u32) << 16) |
+        ((self.0[2] as u32) << 24)
+    }
 }
 
 impl AsMut<[u8]> for ReadRegMem32Rsp {

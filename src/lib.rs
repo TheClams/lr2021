@@ -7,6 +7,7 @@ pub mod lora;
 pub mod ble;
 pub mod cmd;
 pub mod flrc;
+pub mod ook;
 
 use core::marker::PhantomData;
 
@@ -160,7 +161,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
         if req.len() > 18 {
             return Err(Lr2021Error::InvalidSize);
         }
-        // debug!("[WR]  {=[u8]:x} ", req);
+        // defmt::debug!("[WR]  {=[u8]:x} ", req);
         self.wait_ready(Duration::from_millis(100)).await?;
         self.nss.set_low().map_err(|_| Lr2021Error::Pin)?;
         let rsp_buf = &mut self.buffer[..req.len()];

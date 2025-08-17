@@ -238,7 +238,6 @@ categories:
             - '7:0'
           description: Total number of received packets
           optional: false
-          internal: false
         - name: crc_error
           bit_width: 16
           byte_positions:
@@ -248,7 +247,6 @@ categories:
             - '7:0'
           description: Number of received packets with a CRC error
           optional: false
-          internal: false
         - name: len_error
           bit_width: 16
           byte_positions:
@@ -258,7 +256,6 @@ categories:
             - '7:0'
           description: Number of packets with a length error
           optional: false
-          internal: false
         - name: pbl_det
           bit_width: 16
           byte_positions:
@@ -1157,7 +1154,6 @@ categories:
             - '7:0'
           description: Total number of received packets
           optional: false
-          internal: false
         - name: crc_error
           bit_width: 16
           byte_positions:
@@ -1167,7 +1163,6 @@ categories:
             - '7:0'
           description: Number of received packets with a CRC error
           optional: false
-          internal: false
         - name: len_error
           bit_width: 16
           byte_positions:
@@ -1177,7 +1172,6 @@ categories:
             - '7:0'
           description: Number of packets with a length error
           optional: false
-          internal: false
         - name: crc_ok
           bit_width: 16
           byte_positions:
@@ -1827,7 +1821,6 @@ categories:
             - '1:0'
           description: Low Data Rate Optimisation. Enable for high Spreading factor to increase tolerance to clock drift.
           optional: false
-          internal: false
           enum:
             'OFF': 0
             'ON': 1
@@ -2777,18 +2770,20 @@ categories:
             CRC_1_BYTE_INV: 9
             CRC_2_BYTE_INV: 10
             CRC_3_BYTE_INV: 11
-            CRC_4_BYTE_INV2: 12
-        - name: manchester
+            CRC_4_BYTE_INV: 12
+        - name: encoding
           bit_width: 4
           byte_positions:
           - - 7
             - '3:0'
-          description: Manchester encoding configuration
+          description: Encoding configuration
           optional: false
           enum:
-            'OFF': 0
-            'ON': 1
-            ON_INV: 3
+            NONE: 0
+            MANCHESTER: 1
+            MANCHESTER_INV: 9
+            BIPHASE_MARK: 2
+            BIPHASE_MARK_INV: 10
       SetOokCrcParams:
         opcode: 643
         description: Sets the OOK CRC parameters (same as for FSK)
@@ -2871,6 +2866,46 @@ categories:
             - '7:0'
           description: Broadcast address
           optional: false
+      GetOokRxStats:
+        opcode: 0x0286
+        description: "Gets the internal statistics of the received packets. Statistics are reset on a POR, sleep without memory retention and the command ResetRxStats"
+        parameters: []
+        status_fields:
+          - name: pkt_rx
+            bit_width: 16
+            byte_positions: [[2, "7:0"], [3, "7:0"]]
+            description: "Total number of received packets"
+            optional: false
+          - name: crc_error
+            bit_width: 16
+            byte_positions: [[4, "7:0"], [5, "7:0"]]
+            description: "Number of received packets with a CRC error"
+            optional: false
+          - name: len_error
+            bit_width: 16
+            byte_positions: [[6, "7:0"], [7, "7:0"]]
+            description: "Number of packets with a length error"
+            optional: false
+          - name: pbl_det
+            bit_width: 16
+            byte_positions: [[8, "7:0"], [9, "7:0"]]
+            description: "Number of detections"
+            optional: true
+          - name: sync_ok
+            bit_width: 16
+            byte_positions: [[10, "7:0"], [11, "7:0"]]
+            description: "Number of good found syncword"
+            optional: true
+          - name: sync_fail
+            bit_width: 16
+            byte_positions: [[12, "7:0"], [13, "7:0"]]
+            description: "Number of failed syncword"
+            optional: true
+          - name: timeout
+            bit_width: 16
+            byte_positions: [[14, "7:0"], [15, "7:0"]]
+            description: "Number of timeouts"
+            optional: true
       GetOokPacketStatus:
         opcode: 647
         description: Gets the status of the last received OOK packet. Status is updated at the end of a reception (RxDone
@@ -3407,9 +3442,9 @@ categories:
           description: Number of 32-bit words to read (maximum 64)
           optional: false
         status_fields:
-        - name: data
-          bit_width: 0
-          byte_positions: []
+        - name: value
+          bit_width: 32
+          byte_positions: [[2, "7:0"], [3, "7:0"], [4, "7:0"], [5, "7:0"]]
           description: Variable length array of 32-bit data words read from memory (len words, each 4 bytes)
           optional: false
   system:

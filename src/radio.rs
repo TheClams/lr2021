@@ -2,6 +2,8 @@ use embassy_time::Duration;
 use embedded_hal::digital::v2::OutputPin;
 use embedded_hal_async::spi::SpiBus;
 
+use crate::cmd::cmd_regmem::write_reg_mem_mask32_cmd;
+
 pub use super::cmd::cmd_common::*;
 use super::{BusyPin, Lr2021, Lr2021Error};
 
@@ -68,6 +70,14 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
         Ok(())
     }
 
+    /// Configure the radio gain manually:
+    ///   - Gain 0 enable the automatic gain selection (default setting)
+    ///   - Max gain is 13
+    pub async fn set_rx_gain(&mut self, gain: u8) -> Result<(), Lr2021Error> {
+        let req = set_agc_gain_manual_cmd(gain.min(13));
+        self.cmd_wr(&req).await
+    }
+
     /// Clear RX stats
     pub async fn clear_rx_stats(&mut self) -> Result<(), Lr2021Error> {
         self.cmd_wr(&reset_rx_stats_cmd()).await
@@ -79,6 +89,12 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
         let mut rsp = RxPktLengthRsp::new();
         self.cmd_rd(&req, rsp.as_mut()).await?;
         Ok(rsp.pkt_length())
+    }
+
+    /// Output CRC to the FIFO even when already checked by hardware
+    pub async fn force_crc_out(&mut self) -> Result<(), Lr2021Error> {
+        let req = write_reg_mem_mask32_cmd(0xF30844, 0x01000000, 0);
+        self.cmd_wr(&req).await
     }
 
 }
