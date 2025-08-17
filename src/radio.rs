@@ -1,4 +1,4 @@
-use embassy_time::Duration;
+use embassy_time::{Duration, Timer};
 use embedded_hal::digital::v2::OutputPin;
 use embedded_hal_async::spi::SpiBus;
 
@@ -70,6 +70,36 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
         Ok(())
     }
 
+    /// Configure parameters for Channel Activity Detection
+    ///  - CAD Timeout is the maximum time spent measuring RSSI in 31.25ns step
+    ///  - Threshold in -dBm to determine if a signal is present
+    ///  - Exit Mode: controls what happens after CAD (nothing, TX if nothing, RX if something)
+    ///  - TRX Timeout is the timeout used in case the exit_mode triggers a TX or RX
+    pub async fn set_cad_params(&mut self, cad_timeout: u32, threshold: u8, exit_mode: ExitMode, trx_timeout: u32) -> Result<(), Lr2021Error> {
+        let req = set_cad_params_cmd(cad_timeout, threshold, exit_mode, trx_timeout);
+        self.cmd_wr(&req).await
+    }
+
+    /// Set chip in Channel activity Detection mode
+    /// CAD is configured with set_cad_params
+    pub async fn set_cad(&mut self) -> Result<(), Lr2021Error> {
+        self.cmd_wr(&set_cad_cmd()).await
+    }
+
+    /// Set chip in CCA (Clear Channel Assesment) for duration (31.25ns)
+    pub async fn set_cca(&mut self, duration: u32) -> Result<(), Lr2021Error> {
+        let req = set_cca_cmd(duration);
+        self.cmd_wr(&req).await
+    }
+
+    /// Set chip in CCA (Clear Channel Assesment) for duration (31.25ns)
+    pub async fn get_cca_result(&mut self) -> Result<CcaResultRsp, Lr2021Error> {
+        let req = get_cca_result_req();
+        let mut rsp = CcaResultRsp::new();
+        self.cmd_rd(&req, rsp.as_mut()).await?;
+        Ok(rsp)
+    }
+
     /// Configure the radio gain manually:
     ///   - Gain 0 enable the automatic gain selection (default setting)
     ///   - Max gain is 13
@@ -95,6 +125,27 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     pub async fn force_crc_out(&mut self) -> Result<(), Lr2021Error> {
         let req = write_reg_mem_mask32_cmd(0xF30844, 0x01000000, 0);
         self.cmd_wr(&req).await
+    }
+
+    /// Measure RSSI instantaneous
+    pub async fn get_rssi_inst(&mut self) -> Result<u16, Lr2021Error> {
+        let req = get_rssi_inst_req();
+        let mut rsp = RssiInstRsp::new();
+        self.cmd_rd(&req, rsp.as_mut()).await?;
+        Ok(rsp.rssi())
+    }
+
+    /// Measure an average RSSI
+    /// Note: Digital Front-End settings are changed for the time of the measurement
+    pub async fn get_rssi_avg(&mut self, duration: Duration) -> Result<u16, Lr2021Error> {
+        // Configure DigFE for accurate RSSI measurement
+        let cfg_rssi = self.rd_reg(0xF3014C).await?;
+        self.wr_reg(0xF3014C, (cfg_rssi & 0xFFFFF0FF) | (7<<3)).await?;
+        Timer::after(duration).await;
+        let rssi = self.get_rssi_inst().await?;
+        // Restore RSSI settings
+        self.wr_reg(0xF3014C, cfg_rssi).await?;
+        Ok(rssi)
     }
 
 }

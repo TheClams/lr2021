@@ -1,7 +1,7 @@
 use embedded_hal::digital::v2::OutputPin;
 use embedded_hal_async::spi::SpiBus;
 
-use crate::cmd::cmd_regmem::{read_reg_mem32_req, write_reg_mem_mask32_cmd, ReadRegMem32Rsp};
+use crate::cmd::cmd_regmem::{read_reg_mem32_req, write_reg_mem32_cmd, write_reg_mem_mask32_cmd, ReadRegMem32Rsp};
 
 use super::{BusyPin, Lr2021, Lr2021Error};
 use super::status::{Intr, Status};
@@ -159,8 +159,14 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
         Ok(rsp.value())
     }
 
-    /// W a register value
-    pub async fn wr_reg(&mut self, addr: u32, value: u32, pos: u8, width: u8) -> Result<(), Lr2021Error> {
+    /// Write a register value
+    pub async fn wr_reg(&mut self, addr: u32, value: u32) -> Result<(), Lr2021Error> {
+        let req = write_reg_mem32_cmd(addr, value);
+        self.cmd_wr(&req).await
+    }
+
+    /// Write a field value
+    pub async fn wr_field(&mut self, addr: u32, value: u32, pos: u8, width: u8) -> Result<(), Lr2021Error> {
         let mask =
             if width >= 32 {0xFFFFFFFF}
             else { ((1 << width) - 1) << pos };
