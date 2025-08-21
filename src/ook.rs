@@ -1,7 +1,7 @@
 use embedded_hal::digital::v2::OutputPin;
 use embedded_hal_async::spi::SpiBus;
 
-use crate::{cmd::cmd_regmem::{write_reg_mem_mask32_cmd}, RxBw};
+use crate::{cmd::cmd_regmem::write_reg_mem_mask32_cmd, radio::PacketType, RxBw};
 
 pub use super::cmd::cmd_ook::*;
 use super::{BusyPin, Lr2021, Lr2021Error, PulseShape};
@@ -52,10 +52,11 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     ///  - Packet: Fixed payload 11B + 3B CRC with inverted manchester encoding
     ///  - Detector: Pattern 15b 0x285 and no SFD
     pub async fn set_ook_adsb(&mut self) -> Result<(), Lr2021Error>  {
+        self.set_packet_type(PacketType::Ook).await.expect("Setting packet type to BLE");
         self.set_ook_modulation(2_000_000, RxBw::Bw3076, PulseShape::None).await?;
         self.set_ook_packet(8, AddrComp::Off, PktFormat::FixedLength, 11, Crc::Crc3Byte, Encoding::ManchesterInv).await?;
         self.set_ook_syncword(0, BitOrder::LsbFirst, 0).await?;
-        self.set_ook_detector(0x285, 15, 0, true, SfdKind::FallingEdge, 0).await?; // TODO change true to false (sw_is_raw is unimportant)
+        self.set_ook_detector(0x285, 15, 0, false, SfdKind::FallingEdge, 0).await?;
         self.set_ook_crc(0x1FFF409, 0).await?;
         Ok(())
     }

@@ -4857,6 +4857,51 @@ categories:
             - '7:0'
           description: Transaction ID
           optional: false
+      GetZigbeeRxStats:
+        opcode: 0x02A0
+        description: "Gets the internal statistics of the received packets. Statistics are reset on a POR, sleep without memory retention and the command ResetRxStats"
+        parameters: []
+        status_fields:
+          - name: pkt_rx
+            bit_width: 16
+            byte_positions: [[2, "7:0"], [3, "7:0"]]
+            description: "Total number of received packets"
+            optional: false
+          - name: crc_error
+            bit_width: 16
+            byte_positions: [[4, "7:0"], [5, "7:0"]]
+            description: "Number of received packets with a CRC error"
+            optional: false
+          - name: len_error
+            bit_width: 16
+            byte_positions: [[6, "7:0"], [7, "7:0"]]
+            description: "Number of packets with a length error"
+            optional: false
+          - name: pbl_det
+            bit_width: 16
+            byte_positions: [[8, "7:0"], [9, "7:0"]]
+            description: "Number of detections"
+            optional: true
+          - name: sync_ok
+            bit_width: 16
+            byte_positions: [[10, "7:0"], [11, "7:0"]]
+            description: "Number of good found syncword"
+            optional: true
+          - name: sync_fail
+            bit_width: 16
+            byte_positions: [[12, "7:0"], [13, "7:0"]]
+            description: "Number of failed syncword"
+            optional: true
+          - name: timeout
+            bit_width: 16
+            byte_positions: [[14, "7:0"], [15, "7:0"]]
+            description: "Number of RTC timeouts"
+            optional: true
+          - name: crc_ok
+            bit_width: 16
+            byte_positions: [[16, "7:0"], [17, "7:0"]]
+            description: "Number of good found CRC"
+            optional: true
   zwave:
     commands:
       SetZwaveParams:

@@ -80,6 +80,11 @@ pub fn set_zigbee_address_cmd(long_dest_addr: u64, short_dest_addr: u16, pan_id:
     cmd
 }
 
+/// Gets the internal statistics of the received packets. Statistics are reset on a POR, sleep without memory retention and the command ResetRxStats
+pub fn get_zigbee_rx_stats_req() -> [u8; 2] {
+    [0x02, 0xA0]
+}
+
 // Response structs
 
 /// Response for GetZigbeePacketStatus command
@@ -127,6 +132,116 @@ impl ZigbeePacketStatusRsp {
 }
 
 impl AsMut<[u8]> for ZigbeePacketStatusRsp {
+    fn as_mut(&mut self) -> &mut [u8] {
+        &mut self.0
+    }
+}
+
+/// Response for GetZigbeeRxStats command
+#[derive(Default)]
+pub struct ZigbeeRxStatsRsp([u8; 8]);
+
+impl ZigbeeRxStatsRsp {
+    /// Create a new response buffer
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Return Status
+    pub fn status(&mut self) -> Status {
+        Status::from_slice(&self.0[..2])
+    }
+
+    /// Total number of received packets
+    pub fn pkt_rx(&self) -> u16 {
+        (self.0[3] as u16) |
+        ((self.0[2] as u16) << 8)
+    }
+
+    /// Number of received packets with a CRC error
+    pub fn crc_error(&self) -> u16 {
+        (self.0[5] as u16) |
+        ((self.0[4] as u16) << 8)
+    }
+
+    /// Number of packets with a length error
+    pub fn len_error(&self) -> u16 {
+        (self.0[7] as u16) |
+        ((self.0[6] as u16) << 8)
+    }
+}
+
+impl AsMut<[u8]> for ZigbeeRxStatsRsp {
+    fn as_mut(&mut self) -> &mut [u8] {
+        &mut self.0
+    }
+}
+
+/// Response for GetZigbeeRxStats command
+#[derive(Default)]
+pub struct ZigbeeRxStatsRspAdv([u8; 18]);
+
+impl ZigbeeRxStatsRspAdv {
+    /// Create a new response buffer
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Return Status
+    pub fn status(&mut self) -> Status {
+        Status::from_slice(&self.0[..2])
+    }
+
+    /// Total number of received packets
+    pub fn pkt_rx(&self) -> u16 {
+        (self.0[3] as u16) |
+        ((self.0[2] as u16) << 8)
+    }
+
+    /// Number of received packets with a CRC error
+    pub fn crc_error(&self) -> u16 {
+        (self.0[5] as u16) |
+        ((self.0[4] as u16) << 8)
+    }
+
+    /// Number of packets with a length error
+    pub fn len_error(&self) -> u16 {
+        (self.0[7] as u16) |
+        ((self.0[6] as u16) << 8)
+    }
+
+    /// Number of detections
+    pub fn pbl_det(&self) -> u16 {
+        (self.0[9] as u16) |
+        ((self.0[8] as u16) << 8)
+    }
+
+    /// Number of good found syncword
+    pub fn sync_ok(&self) -> u16 {
+        (self.0[11] as u16) |
+        ((self.0[10] as u16) << 8)
+    }
+
+    /// Number of failed syncword
+    pub fn sync_fail(&self) -> u16 {
+        (self.0[13] as u16) |
+        ((self.0[12] as u16) << 8)
+    }
+
+    /// Number of RTC timeouts
+    pub fn timeout(&self) -> u16 {
+        (self.0[15] as u16) |
+        ((self.0[14] as u16) << 8)
+    }
+
+    /// Number of good found CRC
+    pub fn crc_ok(&self) -> u16 {
+        (self.0[17] as u16) |
+        ((self.0[16] as u16) << 8)
+    }
+}
+
+impl AsMut<[u8]> for ZigbeeRxStatsRspAdv {
     fn as_mut(&mut self) -> &mut [u8] {
         &mut self.0
     }
