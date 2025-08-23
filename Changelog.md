@@ -4,15 +4,18 @@
 
 ### Changed
   - Core: the internal buffer was extended to support 256 data bytes and made externally accessible
-    through buffer() and buffer_mut().
+    through `buffer()` and `buffer_mut()`.
   - Read/Write FIFO where changed and split in two:
-    * wr_tx_fifo/rd_rx_fifo changed to take only a length argument and use the internal buffer
-    * wr_tx_fifo_to/wr_rx_fifo_from corresponds to the old API when a buffer is provided to the command
+    * `wr_tx_fifo`/`rd_rx_fifo` changed to take only a length argument and use the internal buffer
+    * `wr_tx_fifo_to`/`wr_rx_fifo_from` corresponds to the old API when a buffer is provided to the command
+  - FLRC set packet now uses a structures as input parameter (`FlrcPacket_Params::new(...)`)
 
 ### Added
-  - PatchRam: get_pram_info allows to check if a patch RAM has been set and which version number it contains.
-  - API for Zigbee: set_zigbee_packet, set_zigbee_packet_len, set_zigbee_address, get_zigbee_packet_status, get_zigbee_rx_stats
-  - API for LR-FHSS: lrfhss_build_packet, set_lrfhss_syncword and set_lrfhss_hopping.
+  - PatchRam: `get_pram_info` allows to check if a patch RAM has been set and which version number it contains.
+  - API for Zigbee: `set_zigbee_packet`, `set_zigbee_packet_len`, `set_zigbee_address`, `get_zigbee_packet_status`, `get_zigbee_rx_stats`
+  - API for ZWave: `set_zwave_packet`, `set_zwave_home_id`, `set_zwave_beam_filt`, `set_zwave_scan_config`, `start_zwave_scan`, `get_zwave_packet_status`, `get_zwave_rx_stats`
+  - API for LR-FHSS: `lrfhss_build_packet`, `set_lrfhss_syncword` and `set_lrfhss_hopping`.
+  - All enums from command now derive defmt::Format if option is enabled
 
 
 ## [0.3.0] - 2025-08-18
