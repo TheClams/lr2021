@@ -259,6 +259,8 @@ def gen_req(cmd: Command, _category: str, advanced: bool = False) -> str:
             if param.bit_width == 0:
                 continue
 
+            need_cast_u8 = param.signed or param.bit_width > 8
+            mask = (1 << param.bit_width) - 1 if param.bit_width < 8 else 255
             # Generate bit packing for each byte position
             for pos in param.byte_positions:
                 _, lsb = pos.get_bit_range_tuple()
@@ -267,10 +269,9 @@ def gen_req(cmd: Command, _category: str, advanced: bool = False) -> str:
                 elif param.name == 'temp_format':
                     lines.append(f"    cmd[2] |= 8; // Force format to Celsius")
                 else:
-                    mask = (1 << param.bit_width) - 1 if param.bit_width < 8 else 255
                     shift_right = param.bit_width - sum((p_msb - p_lsb + 1) for p_pos in param.byte_positions[:param.byte_positions.index(pos)+1] for p_msb, p_lsb in [p_pos.get_bit_range_tuple()])
                     l = f"    cmd[{pos.byte_index}] |= "
-                    if param.bit_width > 8:  l += '(';
+                    if need_cast_u8:  l += '(';
                     if lsb!= 0: l += '(';
                     if shift_right!=0: l += '(';
                     if param.enum:
@@ -287,7 +288,7 @@ def gen_req(cmd: Command, _category: str, advanced: bool = False) -> str:
                         l += f" & 0x{mask:X}"
                     if lsb!= 0:
                         l += f') << {lsb}'
-                    if param.bit_width > 8:
+                    if need_cast_u8:
                         l += ') as u8';
                     l += ';'
                     lines.append(l)

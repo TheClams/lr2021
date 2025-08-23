@@ -10,8 +10,9 @@
     * wr_tx_fifo_to/wr_rx_fifo_from corresponds to the old API when a buffer is provided to the command
 
 ### Added
-  - API for Zigbee: set_zigbee_packet, set_zigbee_packet_len, set_zigbee_address, get_zigbee_packet_status, get_zigbee_rx_stats
   - PatchRam: get_pram_info allows to check if a patch RAM has been set and which version number it contains.
+  - API for Zigbee: set_zigbee_packet, set_zigbee_packet_len, set_zigbee_address, get_zigbee_packet_status, get_zigbee_rx_stats
+  - API for LR-FHSS: lrfhss_build_packet, set_lrfhss_syncword and set_lrfhss_hopping.
 
 
 ## [0.3.0] - 2025-08-18

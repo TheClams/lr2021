@@ -10,6 +10,7 @@ pub mod flrc;
 pub mod ook;
 pub mod fsk;
 pub mod zigbee;
+pub mod lrfhss;
 
 use core::marker::PhantomData;
 

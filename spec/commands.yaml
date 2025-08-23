@@ -2467,7 +2467,7 @@ categories:
             - '3:0'
           description: Number of sent sync headers (1, 2, 3, 4)
           optional: false
-        - name: cr
+        - name: lrfhss_cr
           bit_width: 4
           byte_positions:
           - - 2
@@ -2479,25 +2479,26 @@ categories:
             CR2_3: 1
             CR1_2: 2
             CR1_3: 3
-        - name: mod_type
-          bit_width: 4
-          byte_positions:
-          - - 3
-            - '3:0'
-          description: Modulation type
-          optional: false
-          enum:
-            GMSK_488_28125_HZ: 0
+        # Only one enum possible, just ignore
+        # - name: mod_type
+        #   bit_width: 4
+        #   byte_positions:
+        #   - - 3
+        #     - '3:0'
+        #   description: Modulation type
+        #   optional: false
+        #   enum:
+        #     GMSK_488_28125_HZ: 0
         - name: grid
           bit_width: 4
           byte_positions:
           - - 3
             - '7:4'
-          description: Frequency grid selection
+          description: Frequency grid selection (25.39kHz or 3.91kHz)
           optional: false
           enum:
-            GRID_25_390625_KHZ: 0
-            GRID_3_90625_KHZ: 1
+            GRID_25: 0
+            GRID_4: 1
         - name: hopping
           bit_width: 4
           byte_positions:
@@ -2532,12 +2533,14 @@ categories:
           - - 7
             - '7:0'
           description: Frequency offset. Allowed signed values [-26, 25] for Grid = 25.4KHz and [-4, 3] for Grid = 3.9KHz
+          signed: true
           optional: false
-        - name: payload
-          bit_width: 0
-          byte_positions: []
-          description: Variable length payload to encode (up to 255 bytes)
-          optional: false
+        # This will be handle by the API to call a second functio without raising the NSS in between
+        # - name: payload
+        #   bit_width: 0
+        #   byte_positions: []
+        #   description: Variable length payload to encode (up to 255 bytes)
+        #   optional: false
       SetLrFhssSyncWord:
         opcode: 599
         description: Sets the LR-FHSS syncword. Reset value is { 0x2C, 0x0F, 0x79, 0x95 }
@@ -2556,6 +2559,40 @@ categories:
           description: LR-FHSS syncword
           optional: false
           default: 739211669
+      WriteLrFhssHoppingTable:
+        opcode: 0x0259
+        description: "Writes the LR-FHSS hopping table."
+        parameters:
+        - name: hop_en
+          bit_width: 1
+          byte_positions: [[2, "0"]]
+          description: "Enable hopping"
+          optional: false
+        - name: freq_hz
+          bit_width: 1
+          byte_positions: [[2, "7"]]
+          description: "Frequency provided in Hz instead of PLL step"
+          optional: false
+        - name: pkt_length
+          bit_width: 16
+          byte_positions: [[3, "7:0"], [4, "7:0"]]
+          description: "Packet length"
+          optional: false
+        - name: nb_used_freqs
+          bit_width: 8
+          byte_positions: [[5, "7:0"]]
+          description: "How many frequencies are used"
+          optional: false
+        - name: nb_hopping_blocks
+          bit_width: 8
+          byte_positions: [[6, "7:0"]]
+          description: "Number of hopping blocks"
+          optional: false
+        # Hopping data is n freq (4B) + length (2B) with n in [1:40]
+        # - name: hopping_data
+        #   bit_width: 0
+        #   byte_positions: []
+
   ook:
     commands:
       SetOokModulationParams:
