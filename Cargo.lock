@@ -266,7 +266,7 @@ checksum = "f5e54036fe321fd421e10d732f155734c4e4afd610dd556d9a82833ab3ee0bed"
 
 [[package]]
 name = "lr2021"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "defmt 1.0.1",
  "embassy-embedded-hal",

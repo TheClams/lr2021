@@ -1,5 +1,27 @@
 # Change Log
 
+## [0.4.0] - 2025-08-23
+
+### Changed
+  - Core: the internal buffer was extended to support 256 data bytes and made externally accessible
+    through buffer() and buffer_mut().
+  - Read/Write FIFO where changed and split in two:
+    * wr_tx_fifo/rd_rx_fifo changed to take only a length argument and use the internal buffer
+    * wr_tx_fifo_to/wr_rx_fifo_from corresponds to the old API when a buffer is provided to the command
+
+### Added
+  - API for Zigbee: set_zigbee_packet, set_zigbee_packet_len, set_zigbee_address, get_zigbee_packet_status, get_zigbee_rx_stats
+  - PatchRam: get_pram_info allows to check if a patch RAM has been set and which version number it contains.
+
+
+## [0.3.0] - 2025-08-18
+
+### Added
+  - API for legacy FSK modulation (using same packet format as previous Semtech chips)
+  - API for FSK CAD/CCA (set_cad_params, set_cad, set_cca, get_cca_result)
+  - API for first RSSI measurements (get_rssi_avg/inst)
+
+
 ## [0.2.0] - 2025-08-17
 
 ### Added

@@ -17,7 +17,7 @@ use embassy_time::{with_timeout, Duration, Instant, Timer};
 use embedded_hal::digital::v2::{OutputPin, InputPin};
 use embedded_hal_async::{digital::Wait, spi::SpiBus};
 
-use status::{Intr, Status};
+use status::{CmdStatus, Intr, Status};
 pub use cmd::{RxBw, PulseShape}; // Re-export Bandwidth enum as it is used for all packet types
 
 trait Sealed{}
@@ -42,6 +42,7 @@ impl<I> Sealed for BusyAsync<I> {}
 impl<I: InputPin> BusyPin for BusyBlocking<I> {
     type Pin = I;
 
+    /// Poll busy pin until it goes low
     async fn wait_ready(pin: &mut I, timeout: Duration) -> Result<(), Lr2021Error> {
         let start = Instant::now();
         while pin.is_high().map_err(|_| Lr2021Error::Pin)? {
@@ -57,6 +58,7 @@ impl<I: InputPin> BusyPin for BusyBlocking<I> {
 impl<I: InputPin + Wait> BusyPin for BusyAsync<I> {
     type Pin = I;
 
+    /// Wait for an interrupt on th busy pin to go low (if not already)
     async fn wait_ready(pin: &mut I, timeout: Duration) -> Result<(), Lr2021Error> {
         // Option 1: Use the Wait trait for more efficient waiting
         if pin.is_high().map_err(|_| Lr2021Error::Pin)? {
@@ -70,17 +72,67 @@ impl<I: InputPin + Wait> BusyPin for BusyAsync<I> {
     }
 }
 
+/// Size of an the internal buffer set to the largest command (outside those with variable number of parameters)
+const BUFFER_SIZE: usize = 256;
+/// Command Buffer:
+pub struct CmdBuffer ([u8;BUFFER_SIZE+2]);
+
+impl CmdBuffer {
+    /// Create a zero initialized buffer
+    pub fn new() -> Self {
+        CmdBuffer([0;BUFFER_SIZE+2])
+    }
+
+    /// Set first two byte to 0 corresponding to the NOP command
+    pub fn nop(&mut self) {
+        self.0[0] = 0;
+        self.0[1] = 0;
+    }
+
+    /// Return the first two bytes as a status
+    pub fn status(&self) -> Status {
+        Status::from_array([self.0[0],self.0[1]])
+    }
+
+    /// Update the status from a slice of bytes
+    pub fn updt_status(&mut self, bytes: &[u8]) {
+        self.0.iter_mut()
+            .zip(bytes)
+            .take(2)
+            .for_each(|(s,&b)| *s = b);
+    }
+
+    /// The bits [3:1] contains a CmdStatus
+    pub fn cmd_status(&self) -> CmdStatus {
+        let bits_cmd = ((self.0[0] >> 1) & 7) as u8;
+        bits_cmd.into()
+    }
+
+    /// Give read access to the the last 256 bytes
+    pub fn data(&self) -> &[u8] {
+        &self.0[2..]
+    }
+
+    /// Give read/write access to the the last 256 bytes
+    pub fn data_mut(&mut self) -> &mut [u8] {
+        &mut self.0[2..]
+    }
+}
+
+
 
 /// LR2021 Device
 pub struct Lr2021<O,SPI, M: BusyPin> {
-    // Pins
+    /// Reset pin  (active low)
     nreset: O,
+    /// Busy pin from the LR2021 indicating if the LR2021 is ready to handle commands
     busy: M::Pin,
+    /// SPI device
     spi: SPI,
+    /// NSS output pin
     nss: O,
-    /// Buffer to store SPI bytes from LR2021 when writing commands
-    /// Size is set to hanle some of the largest common command
-    buffer: [u8;18],
+    /// Buffer to store SPI commands/response
+    buffer: CmdBuffer,
 }
 
 /// Error using the LR2021
@@ -109,7 +161,7 @@ impl<I,O,SPI> Lr2021<O,SPI, BusyBlocking<I>> where
 {
     /// Create a LR2021 Device with blocking access on the busy pin
     pub fn new_blocking(nreset: O, busy: I, spi: SPI, nss: O) -> Self {
-        Self { nreset, busy, spi, nss, buffer: [0;18]}
+        Self { nreset, busy, spi, nss, buffer: CmdBuffer::new()}
     }
 
 }
@@ -120,7 +172,7 @@ impl<I,O,SPI> Lr2021<O,SPI, BusyAsync<I>> where
 {
     /// Create a LR2021 Device with async busy pin
     pub fn new(nreset: O, busy: I, spi: SPI, nss: O) -> Self {
-        Self { nreset, busy, spi, nss, buffer: [0;18]}
+        Self { nreset, busy, spi, nss, buffer: CmdBuffer::new()}
     }
 }
 
@@ -144,13 +196,23 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
 
     /// Last status (command status, chip mode, interrupt, ...)
     pub fn status(&self) -> Status {
-        Status::from_slice(&self.buffer[..2])
+        self.buffer.status()
+    }
+
+    /// Read access to internal buffer
+    pub fn buffer(&self) -> &[u8] {
+        self.buffer.data()
+    }
+
+    /// Read/Write access to internal buffer
+    pub fn buffer_mut(&mut self) -> &mut [u8] {
+        self.buffer.data_mut()
     }
 
     /// Last captured interrupt status
     /// Note: might be incomplete if last command was less than 6 bytes
     pub fn last_intr(&self) -> Intr {
-        Intr::from_slice(&self.buffer[2..6])
+        Intr::from_slice(&self.buffer.data()[2..6])
     }
 
     /// Wait for LR2021 to be ready for a command, i.e. busy pin low
@@ -158,26 +220,77 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
         M::wait_ready(&mut self.busy, timeout).await
     }
 
-    /// Write a command
-    pub async fn cmd_wr(&mut self, req: &[u8]) -> Result<(), Lr2021Error> {
-        if req.len() > 18 {
+    /// Write the beginning of a command, allowing to fill with variable length fields
+    pub async fn cmd_wr_begin(&mut self, req: &[u8]) -> Result<(), Lr2021Error> {
+        if req.len() > BUFFER_SIZE {
             return Err(Lr2021Error::InvalidSize);
         }
-        // defmt::debug!("[WR]  {=[u8]:x} ", req);
         self.wait_ready(Duration::from_millis(100)).await?;
         self.nss.set_low().map_err(|_| Lr2021Error::Pin)?;
-        let rsp_buf = &mut self.buffer[..req.len()];
+        let rsp_buf = &mut self.buffer.0[..req.len()];
         self.spi
             .transfer(rsp_buf, req).await
             .map_err(|_| Lr2021Error::Spi)?;
-        self.nss.set_high().map_err(|_| Lr2021Error::Pin)?;
-        self.status().check()
+        self.buffer.cmd_status().check()
+    }
+
+    /// Write a command
+    pub async fn cmd_wr(&mut self, req: &[u8]) -> Result<(), Lr2021Error> {
+        self.cmd_wr_begin(req).await?;
+        self.nss.set_high().map_err(|_| Lr2021Error::Pin)
     }
 
     /// Write a command and read response
-    /// Rsp must be n bytes equal to 0 where n is the number of expected byte
+    /// Rsp must be n bytes where n is the number of expected byte
     pub async fn cmd_rd(&mut self, req: &[u8], rsp: &mut [u8]) -> Result<(), Lr2021Error> {
         self.cmd_wr(req).await?;
+        // Wait for busy to go down before reading the response
+        // Some command can have large delay: temperature measurement with highest resolution (13b) takes more than 270us
+        self.wait_ready(Duration::from_millis(1)).await?;
+        // Read response by transfering a buffer starting with two 0 and replacing it by the read bytes
+        self.nss.set_low().map_err(|_| Lr2021Error::Pin)?;
+        self.spi
+            .transfer_in_place(rsp).await
+            .map_err(|_| Lr2021Error::Spi)?;
+        self.nss.set_high().map_err(|_| Lr2021Error::Pin)?;
+        // Save the first two bytes from the response to keep the command status
+        self.buffer.updt_status(rsp);
+        self.buffer.cmd_status().check()
+    }
+
+    /// Write a command with vairable length payload
+    /// Any feedback data will be available in side the local buffer
+    pub async fn cmd_data_wr(&mut self, opcode: &[u8], data: &[u8]) -> Result<(), Lr2021Error> {
+        self.cmd_wr_begin(&opcode).await?;
+        let rsp = &mut self.buffer.data_mut()[..data.len()];
+        self.spi
+            .transfer(rsp, data).await
+            .map_err(|_| Lr2021Error::Spi)?;
+        self.nss.set_high().map_err(|_| Lr2021Error::Pin)
+    }
+
+    /// Write a command with variable length payload, and save result provided buffer
+    pub async fn cmd_data_rw(&mut self, opcode: &[u8], data: &mut [u8]) -> Result<(), Lr2021Error> {
+        self.cmd_wr_begin(&opcode).await?;
+        self.spi
+            .transfer_in_place(data).await
+            .map_err(|_| Lr2021Error::Spi)?;
+        self.nss.set_high().map_err(|_| Lr2021Error::Pin)
+    }
+
+    /// Send content of the local buffer as a command
+    pub async fn cmd_buf_wr(&mut self, len: usize) -> Result<(), Lr2021Error> {
+        self.wait_ready(Duration::from_millis(100)).await?;
+        self.nss.set_low().map_err(|_| Lr2021Error::Pin)?;
+        self.spi
+            .transfer_in_place(&mut self.buffer.data_mut()[..len]).await
+            .map_err(|_| Lr2021Error::Spi)?;
+        self.nss.set_high().map_err(|_| Lr2021Error::Pin)
+    }
+
+    /// Send content of the local buffer as a command and read a response
+    pub async fn cmd_buf_rd(&mut self, len: usize, rsp: &mut [u8]) -> Result<(), Lr2021Error> {
+        self.cmd_buf_wr(len).await?;
         // Wait for busy to go down before reading the response
         // Some command can have large delay: temperature measurement with highest resolution (13b) takes more than 270us
         self.wait_ready(Duration::from_millis(1)).await?;
@@ -187,25 +300,9 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
             .transfer_in_place(rsp).await
             .map_err(|_| Lr2021Error::Spi)?;
         self.nss.set_high().map_err(|_| Lr2021Error::Pin)?;
-        // Save the first 2 byte in case we want to access status information
-        self.buffer[..2].copy_from_slice(&rsp[..2]);
-        self.status().check()
-    }
-
-    /// Write a command
-    pub async fn cmd_data(&mut self, mut opcode: [u8;2], buffer: &mut[u8]) -> Result<(), Lr2021Error> {
-        self.wait_ready(Duration::from_millis(100)).await?;
-        self.nss.set_low().map_err(|_| Lr2021Error::Pin)?;
-        // Send op-code followed by data
-        self.spi
-            .transfer_in_place(&mut opcode).await
-            .map_err(|_| Lr2021Error::Spi)?;
-        let status = Status::from_slice(&opcode);
-        self.spi
-            .transfer_in_place(buffer).await
-            .map_err(|_| Lr2021Error::Spi)?;
-        self.nss.set_high().map_err(|_| Lr2021Error::Pin)?;
-        status.check()
+        // Save the first two bytes from the response to keep the command status
+        self.buffer.updt_status(rsp);
+        self.buffer.cmd_status().check()
     }
 
     /// Wake-up the chip from a sleep mode (Set NSS low until busy goes low)

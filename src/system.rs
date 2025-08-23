@@ -23,6 +23,11 @@ pub enum ChipMode {
     Rx,
 }
 
+const PRAM_MW_DATA   : u32 = 0x600DB002;
+const PRAM_MW_ADDR   : u32 = 0x800FF8;
+const PRAM_INFO_ADDR : u32 = 0x800FFC;
+const PRAM_PLD_ADDR  : u32 = 0x801000;
+
 impl<O,SPI, M> Lr2021<O,SPI, M> where
     O: OutputPin, SPI: SpiBus<u8>, M: BusyPin
 {
@@ -100,8 +105,18 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
 
     /// Write data to the TX FIFO
     /// Check number of bytes available with get_tx_fifo_lvl()
-    pub async fn wr_tx_fifo(&mut self, buffer: &mut[u8]) -> Result<(), Lr2021Error> {
-        self.cmd_data([0,2], buffer).await
+    pub async fn wr_tx_fifo_from(&mut self, buffer: &[u8]) -> Result<(), Lr2021Error> {
+        self.cmd_data_wr(&[0,2], buffer).await
+    }
+
+    /// Write data to the TX FIFO
+    /// Check number of bytes available with get_tx_fifo_lvl()
+    pub async fn wr_tx_fifo(&mut self, len: usize) -> Result<(), Lr2021Error> {
+        self.cmd_wr_begin(&[0,2]).await?;
+        self.spi
+            .transfer_in_place(&mut self.buffer.data_mut()[..len]).await
+            .map_err(|_| Lr2021Error::Spi)?;
+        self.nss.set_high().map_err(|_| Lr2021Error::Pin)
     }
 
     /// Clear TX Fifo
@@ -118,9 +133,17 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Read data from the RX FIFO
-    /// Check number of bytes available with get_rx_fifo_lvl()
-    pub async fn rd_rx_fifo(&mut self, buffer: &mut[u8]) -> Result<(), Lr2021Error> {
-        self.cmd_data([0,1], buffer).await
+    pub async fn rd_rx_fifo_to(&mut self, buffer: &mut[u8]) -> Result<(), Lr2021Error> {
+        self.cmd_data_rw(&[0,1], buffer).await
+    }
+
+    /// Read data from the RX FIFO to the local buffer
+    pub async fn rd_rx_fifo(&mut self, len: usize) -> Result<(), Lr2021Error> {
+        self.cmd_wr_begin(&[0,1]).await?;
+        self.spi
+            .transfer_in_place(&mut self.buffer.data_mut()[..len]).await
+            .map_err(|_| Lr2021Error::Spi)?;
+        self.nss.set_high().map_err(|_| Lr2021Error::Pin)
     }
 
     /// Return number of byte in RX FIFO
@@ -138,17 +161,33 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
 
     /// Load a patch in ram
     pub async fn load_pram(&mut self, patch: &[u8]) -> Result<(), Lr2021Error> {
-        let mut req = [0;128+3];
-        let mut addr = 0x801000;
+        let mut addr = PRAM_PLD_ADDR;
         for patch_block in patch.chunks(32) {
-            req[0] = ((addr>>16) & 0xFF) as u8;
-            req[1] = ((addr>> 8) & 0xFF) as u8;
-            req[2] = ( addr      & 0xFF) as u8;
-            req[3..patch_block.len()+3].copy_from_slice(&patch_block);
-            self.cmd_data([1,4], &mut req).await?;
+            let len = patch_block.len()+5;
+            self.buffer_mut()[0] = 1;
+            self.buffer_mut()[1] = 4;
+            self.buffer_mut()[2] = ((addr>>16) & 0xFF) as u8;
+            self.buffer_mut()[3] = ((addr>> 8) & 0xFF) as u8;
+            self.buffer_mut()[4] = ( addr      & 0xFF) as u8;
+            self.buffer_mut()[5..len].copy_from_slice(&patch_block);
+            self.cmd_buf_wr(len).await?;
             addr += 128;
         }
         Ok(())
+    }
+
+    /// Return type/version of the Patch Ram if loaded. None if no Patch Ram available
+    pub async fn get_pram_info(&mut self) -> Result<Option<(u8,u8)>, Lr2021Error> {
+        // Check the Magic Word has been written, indicating a PAM was loaded
+        let pram_mw = self.rd_reg(PRAM_MW_ADDR).await?;
+        if pram_mw == PRAM_MW_DATA {
+            let pram_info = self.rd_reg(PRAM_INFO_ADDR).await?;
+            let pram_version = (pram_info & 0xFF) as u8;
+            let pram_kind    = ((pram_info >> 8) & 0xFF) as u8;
+            Ok(Some((pram_version, pram_kind)))
+        } else {
+            Ok(None)
+        }
     }
 
     /// Read a register value

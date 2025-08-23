@@ -5,7 +5,7 @@ use super::Lr2021Error;
 ///  -    8 Interrupt pending
 ///  -  7:4 Reset source
 ///  -  2:0 Chip Mode
-#[derive(Default)]
+#[derive(Default, Clone, Copy)]
 pub struct Status(u16);
 
 /// Command status
@@ -18,6 +18,32 @@ pub enum CmdStatus {
     Data = 3, // Last command succeed and now streaming data
     Unknown = 8, // Unknown status
 }
+
+impl From<u8> for CmdStatus {
+    fn from(value: u8) -> Self {
+        match value {
+            0 => CmdStatus::Fail,
+            1 => CmdStatus::PErr,
+            2 => CmdStatus::Ok,
+            3 => CmdStatus::Data,
+            _ => CmdStatus::Unknown,
+        }
+    }
+}
+
+impl CmdStatus {
+    /// Check command status and return Ok/Err
+    pub fn check(&self) -> Result<(), Lr2021Error> {
+        match self {
+            CmdStatus::Unknown => Err(Lr2021Error::Unknown),
+            CmdStatus::Fail => Err(Lr2021Error::CmdFail),
+            CmdStatus::PErr => Err(Lr2021Error::CmdErr),
+            CmdStatus::Ok   |
+            CmdStatus::Data => Ok(()),
+        }
+    }
+}
+
 
 /// Reset Source
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -48,6 +74,12 @@ pub enum ChipModeStatus {
 impl Status {
 
     /// Create a status from a slice of at least two elements
+    pub fn from_array(bytes: [u8;2]) -> Status {
+        let v = u16::from_be_bytes(bytes);
+        Status(v)
+    }
+
+    /// Create a status from a slice of at least two elements
     pub fn from_slice(bytes: &[u8]) -> Status {
         let v = ((*bytes.first().unwrap_or(&0) as u16) << 8)
             | (*bytes.get(1).unwrap_or(&0) as u16);
@@ -56,14 +88,8 @@ impl Status {
 
     /// Return Command status
     pub fn cmd(&self) -> CmdStatus {
-        let bits_cmd = (self.0 >> 9) & 7;
-        match bits_cmd {
-            0 => CmdStatus::Fail,
-            1 => CmdStatus::PErr,
-            2 => CmdStatus::Ok,
-            3 => CmdStatus::Data,
-            _ => CmdStatus::Unknown,
-        }
+        let bits_cmd = ((self.0 >> 9) & 7) as u8;
+        bits_cmd.into()
     }
 
     pub fn is_ok(&self) -> bool {
@@ -105,13 +131,7 @@ impl Status {
 
     /// Check command status and return Ok/Err
     pub fn check(&self) -> Result<(), Lr2021Error> {
-        match self.cmd() {
-            CmdStatus::Unknown => Err(Lr2021Error::Unknown),
-            CmdStatus::Fail => Err(Lr2021Error::CmdFail),
-            CmdStatus::PErr => Err(Lr2021Error::CmdErr),
-            CmdStatus::Ok   |
-            CmdStatus::Data => Ok(()),
-        }
+        self.cmd().check()
     }
 
 }
