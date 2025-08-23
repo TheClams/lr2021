@@ -3,6 +3,7 @@
 
 /// Coding rate selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum LrfhssCr {
     Cr5p6 = 0,
     Cr2p3 = 1,
@@ -12,6 +13,7 @@ pub enum LrfhssCr {
 
 /// Frequency grid selection (25.39kHz or 3.91kHz)
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum Grid {
     Grid25 = 0,
     Grid4 = 1,
@@ -19,6 +21,7 @@ pub enum Grid {
 
 /// Hopping mode selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum Hopping {
     NoHopping = 0,
     Hopping = 1,

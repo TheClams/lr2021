@@ -4,6 +4,7 @@ use crate::status::Status;
 
 /// RX path selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum RxPath {
     LfPath = 0,
     HfPath = 1,
@@ -11,6 +12,7 @@ pub enum RxPath {
 
 /// Select which PA to use
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum PaSel {
     LfPa = 0,
     HfPa = 1,
@@ -18,6 +20,7 @@ pub enum PaSel {
 
 /// PA LF mode (if unused set to 0)
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum PaLfMode {
     LfPaFsm = 0,
     LfPaFdm = 1,
@@ -27,6 +30,7 @@ pub enum PaLfMode {
 
 /// PA ramp time selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum RampTime {
     Ramp2u = 0,
     Ramp4u = 1,
@@ -48,6 +52,7 @@ pub enum RampTime {
 
 /// Fallback mode selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum FallbackMode {
     StandbyRc = 1,
     StandbyXosc = 2,
@@ -56,6 +61,7 @@ pub enum FallbackMode {
 
 /// Packet type selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum PacketType {
     Lora = 0,
     FskGeneric = 1,
@@ -75,6 +81,7 @@ pub enum PacketType {
 
 /// Timeout stop condition
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum StopTimeout {
     StopOnSyncwordHeader = 0,
     StopOnPreamble = 1,
@@ -82,6 +89,7 @@ pub enum StopTimeout {
 
 /// Test mode selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum TestMode {
     NormalTx = 0,
     InfinitePreamble = 1,
@@ -91,6 +99,7 @@ pub enum TestMode {
 
 /// Auto mode configuration
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum AutoTxrxMode {
     Disable = 0,
     Always = 1,
@@ -99,6 +108,7 @@ pub enum AutoTxrxMode {
 
 /// Event source selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum Source {
     None = 0,
     TxDone = 1,
@@ -109,6 +119,7 @@ pub enum Source {
 
 /// Action taken after the CAD
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum ExitMode {
     Fallback = 0,
     Tx = 1,

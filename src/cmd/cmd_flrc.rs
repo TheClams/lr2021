@@ -5,6 +5,7 @@ use super::PulseShape;
 
 /// Bitrate and bandwidth combination
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum FlrcBitrate {
     Br2600 = 0,
     Br2080 = 1,
@@ -18,6 +19,7 @@ pub enum FlrcBitrate {
 
 /// Coding rate selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum FlrcCr {
     Cr12 = 0,
     Cr34 = 1,
@@ -27,6 +29,7 @@ pub enum FlrcCr {
 
 /// AGC preamble length
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum AgcPblLen {
     Len4Bits = 0,
     Len8Bits = 1,
@@ -40,6 +43,7 @@ pub enum AgcPblLen {
 
 /// Length of syncword (unit is 2 bytes: 0/16/32 bits). Must be 0 if sync_match is OFF
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum SwLen {
     SwNone = 0,
     Sw16b = 1,
@@ -48,6 +52,7 @@ pub enum SwLen {
 
 /// Defines which syncword to use for TX operations
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum SwTx {
     SwNone = 0,
     Sw1 = 1,
@@ -57,6 +62,7 @@ pub enum SwTx {
 
 /// Match syncword(s) configuration
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum SwMatch {
     MatchNone = 0,
     Match1 = 1,
@@ -70,6 +76,7 @@ pub enum SwMatch {
 
 /// Packet format selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum PktFormat {
     Dynamic = 0,
     Fixed = 1,
@@ -77,6 +84,7 @@ pub enum PktFormat {
 
 /// CRC configuration
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum Crc {
     CrcOff = 0,
     Crc16 = 1,

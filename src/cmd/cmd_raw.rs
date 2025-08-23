@@ -3,6 +3,7 @@
 
 /// TX mode selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum TxMode {
     Iq = 0,
     Frequency = 1,
@@ -11,6 +12,7 @@ pub enum TxMode {
 
 /// Trigger selection for the Raw IQ capture start
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum TriggerStart {
     SoftTrigger = 0,
     Rssi = 1,
@@ -24,6 +26,7 @@ pub enum TriggerStart {
 
 /// Trigger selection for the Raw IQ capture stop. Automatically stopped on Rx stop
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum TriggerStop {
     SoftTrigger = 0,
     Rssi = 1,

@@ -4,6 +4,7 @@ use crate::status::Status;
 
 /// Type of ranging result to return
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum Kind {
     LatestRaw = 0,
     ExtendedRaw = 1,
@@ -12,6 +13,7 @@ pub enum Kind {
 
 /// Extended mode enable: 0=disabled, 1=enabled
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum ExtendedMode {
     Disabled = 0,
     Enabled = 1,
@@ -19,6 +21,7 @@ pub enum ExtendedMode {
 
 /// Spy mode enable: Set to 1 to enable spy mode on the next set_rx. In SPY mode, the radio acts like a normal device in slave mode and will send a response to any request for its address, but will also listen to requests/responses pairs not addressed to it
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum SpyMode {
     Disabled = 0,
     Enabled = 1,

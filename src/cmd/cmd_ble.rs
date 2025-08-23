@@ -5,6 +5,7 @@ use super::RxBw;
 
 /// BLE PHY mode selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum BleMode {
     Le1mb = 0,
     Le2mb = 1,
@@ -14,6 +15,7 @@ pub enum BleMode {
 
 /// BLE channel type selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum ChannelType {
     Advertiser = 0,
     Data16bitHeader = 1,

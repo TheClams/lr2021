@@ -8,9 +8,9 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     O: OutputPin, SPI: SpiBus<u8>, M: BusyPin
 {
 
-    /// Set FLRC packet parameters: preamble, syncword, header implicit/explicit, CRC and packet length (max 511)
-    pub async fn set_zigbee_packet(&mut self, zigbee_mode: ZigbeeMode, rx_bw: RxBw, pld_len: u8, pbl_len_tx: u16, address_on: AddressOn, fcs_mode: FcsMode) -> Result<(), Lr2021Error> {
-        let req = set_zigbee_params_cmd(zigbee_mode, rx_bw, pld_len, pbl_len_tx, address_on, fcs_mode);
+    /// Set Zigbee packet parameters: preamble, Bandwidth, Payload length, Address filtering, FCS handling (software/Hardware)
+    pub async fn set_zigbee_packet(&mut self, mode: ZigbeeMode, rx_bw: RxBw, pld_len: u8, pbl_len_tx: u16, addr_filt_en: bool, fcs_mode: FcsMode) -> Result<(), Lr2021Error> {
+        let req = set_zigbee_params_cmd(mode, rx_bw, pld_len, pbl_len_tx, addr_filt_en, fcs_mode);
         self.cmd_wr(&req).await
     }
 

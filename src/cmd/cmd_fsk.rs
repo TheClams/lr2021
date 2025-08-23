@@ -4,6 +4,7 @@ use crate::status::Status;
 
 /// Pulse shaping filter selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum PulseShape {
     None = 0,
     Custom = 1,
@@ -25,6 +26,7 @@ pub enum PulseShape {
 
 /// RX bandwidth (same format as in the SetAdvancedModulationParams command)
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum RxBw {
     BwAuto = 255,
     Bw3076 = 0,
@@ -121,6 +123,7 @@ pub enum RxBw {
 
 /// Preamble detection length. 0=off (detection on syncword), others=length of preamble detection. Enables/disables PreambleDetected IRQ
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum PblLenDetect {
     None = 0,
     Len8Bits = 8,
@@ -131,6 +134,7 @@ pub enum PblLenDetect {
 
 /// Payload length unit
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum PldLenUnit {
     Bytes = 0,
     Bits = 1,
@@ -138,6 +142,7 @@ pub enum PldLenUnit {
 
 /// Address filtering mode. If address comparison fails, packet reception is aborted and addrErr flag is set
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum AddrComp {
     Off = 0,
     Node = 1,
@@ -146,6 +151,7 @@ pub enum AddrComp {
 
 /// Packet format selection (fixed or variable length)
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum FskPktFormat {
     FixedLength = 0,
     Variable8bit = 1,
@@ -155,6 +161,7 @@ pub enum FskPktFormat {
 
 /// CRC mode selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum Crc {
     CrcOff = 0,
     Crc1Byte = 1,
@@ -169,6 +176,7 @@ pub enum Crc {
 
 /// Whitening type compatibility
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum WhitenType {
     Sx126xLr11xx = 0,
     Sx128x = 1,
@@ -176,6 +184,7 @@ pub enum WhitenType {
 
 /// Bit order for syncword transmission (over the air). Set MSB first for SX126x, LR11xx, SX1280 compatible value
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum BitOrder {
     LsbFirst = 0,
     MsbFirst = 1,

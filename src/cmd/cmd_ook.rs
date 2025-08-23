@@ -6,6 +6,7 @@ use super::PulseShape;
 
 /// Magnitude depth
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum Depth {
     OokDepthFull = 0,
     OokDepthUpTo20db = 1,
@@ -13,6 +14,7 @@ pub enum Depth {
 
 /// Address comparison mode (same as for FSK)
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum AddrComp {
     Off = 0,
     Node = 1,
@@ -21,6 +23,7 @@ pub enum AddrComp {
 
 /// Packet format
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum PktFormat {
     FixedLength = 0,
     Variable8bit = 1,
@@ -28,6 +31,7 @@ pub enum PktFormat {
 
 /// CRC configuration (same as FSK)
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum Crc {
     CrcOff = 0,
     Crc1Byte = 1,
@@ -42,6 +46,7 @@ pub enum Crc {
 
 /// Encoding configuration
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum Encoding {
     None = 0,
     Manchester = 1,
@@ -52,6 +57,7 @@ pub enum Encoding {
 
 /// Bit order for syncword transmission
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum BitOrder {
     LsbFirst = 0,
     MsbFirst = 1,
@@ -59,6 +65,7 @@ pub enum BitOrder {
 
 /// Start of frame delimiter kind. Set to 0 for ADS-B, RTS and INOVA
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum SfdKind {
     FallingEdge = 0,
     RisingEdge = 1,

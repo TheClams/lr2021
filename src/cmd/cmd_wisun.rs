@@ -4,6 +4,7 @@ use crate::status::Status;
 
 /// WISun mode selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum WisunMode {
     Mode1a = 0,
     Mode1b = 1,
@@ -17,6 +18,7 @@ pub enum WisunMode {
 
 /// FCS selection for TX
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum FcsTx {
     Fcs4Byte = 0,
     Fcs2Byte = 1,
@@ -24,6 +26,7 @@ pub enum FcsTx {
 
 /// Whitening enable
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum Whitening {
     NoWhitening = 0,
     Whitening = 1,
@@ -31,6 +34,7 @@ pub enum Whitening {
 
 /// CRC calculation mode
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum CrcOn {
     CrcProvided = 0,
     CrcAuto = 1,
@@ -38,6 +42,7 @@ pub enum CrcOn {
 
 /// Payload type selection for TX
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum ModeSwitchTx {
     NormalPayload = 0,
     ModeSwitchPayload = 1,
@@ -45,6 +50,7 @@ pub enum ModeSwitchTx {
 
 /// FEC encoding selection for TX packet
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum FecTx {
     None = 0,
     Nrnsc = 1,

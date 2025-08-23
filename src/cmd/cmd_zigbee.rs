@@ -5,6 +5,7 @@ use super::RxBw;
 
 /// The modulation and data rate to be used for RX and TX
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum ZigbeeMode {
     Oqpsk250 = 0,
     Oqpsk100 = 1,
@@ -13,22 +14,16 @@ pub enum ZigbeeMode {
     Bpsk40 = 4,
 }
 
-/// Address filtering enable/disable. Addresses are set using the SetZigbeeAddress command
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum AddressOn {
-    Disable = 0,
-    Enable = 1,
-}
-
 /// Set the Rx/Tx mode for FCS (16 bits)
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum FcsMode {
     FcsOn = 0,
     FcsInFifo = 1,
 }
 
 /// Sets the parameters for Zigbee packets
-pub fn set_zigbee_params_cmd(zigbee_mode: ZigbeeMode, rx_bw: RxBw, pld_len: u8, pbl_len_tx: u16, address_on: AddressOn, fcs_mode: FcsMode) -> [u8; 8] {
+pub fn set_zigbee_params_cmd(zigbee_mode: ZigbeeMode, rx_bw: RxBw, pld_len: u8, pbl_len_tx: u16, addr_filt_en: bool, fcs_mode: FcsMode) -> [u8; 8] {
     let mut cmd = [0u8; 8];
     cmd[0] = 0x02;
     cmd[1] = 0x9F;
@@ -38,7 +33,7 @@ pub fn set_zigbee_params_cmd(zigbee_mode: ZigbeeMode, rx_bw: RxBw, pld_len: u8, 
     cmd[4] |= pld_len;
     cmd[5] |= ((pbl_len_tx >> 8) & 0xFF) as u8;
     cmd[6] |= (pbl_len_tx & 0xFF) as u8;
-    cmd[7] |= ((address_on as u8) & 0x1) << 2;
+    if addr_filt_en { cmd[7] |= 4; }
     cmd[7] |= (fcs_mode as u8) & 0x1;
     cmd
 }

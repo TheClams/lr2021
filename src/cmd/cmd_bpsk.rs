@@ -4,6 +4,7 @@ use super::PulseShape;
 
 /// Enable Differential encoding
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum DiffModeEn {
     Disabled = 0,
     Enabled = 1,
@@ -11,6 +12,7 @@ pub enum DiffModeEn {
 
 /// BPSK mode selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum BpskMode {
     Raw = 0,
     Sigfox = 1,
@@ -18,6 +20,7 @@ pub enum BpskMode {
 
 /// Sigfox message type (only valid in Sigfox PHY mode)
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum SigfoxMsg {
     App = 0,
     Ctrl = 1,
@@ -25,6 +28,7 @@ pub enum SigfoxMsg {
 
 /// Sigfox frame emission rank (only valid in Sigfox PHY mode)
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum SigfoxRank {
     First = 0,
     Second = 1,

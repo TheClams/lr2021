@@ -4764,16 +4764,13 @@ categories:
             - '7:0'
           description: Size in bits of the preamble to send. Typically set to 32
           optional: false
-        - name: address_on
+        - name: addr_filt_en
           bit_width: 1
           byte_positions:
           - - 7
             - '2'
           description: Address filtering enable/disable. Addresses are set using the SetZigbeeAddress command
           optional: false
-          enum:
-            DISABLE: 0
-            ENABLE: 1
         - name: fcs_mode
           bit_width: 1
           byte_positions:
@@ -5211,194 +5208,50 @@ categories:
             - '7:0'
           description: The Home ID Hash to accept. Note that a value of 0x55, 0x0A or 0x4A is always accepted
           optional: false
-      SetZwaveScanConfig:
-        opcode: 668
-        description: Configure the Z-Wave scan mode. The user can configure up to 4 data rates and channels to be scanned.
-          The rf_freq_ch and timeout parameters only need to be sent for num_ch channels
-        parameters:
-        - name: num_ch
-          bit_width: 4
-          byte_positions:
-          - - 2
-            - '7:4'
-          description: Number of channels to scan [2..4]
-          optional: false
-        - name: det4
-          bit_width: 1
-          byte_positions:
-          - - 2
-            - '3'
-          description: CCA assessment for channel 4. 0=no CCA assessment (recommended), 1=CCA assessment
-          optional: false
-        - name: det3
-          bit_width: 1
-          byte_positions:
-          - - 2
-            - '2'
-          description: CCA assessment for channel 3. 0=no CCA assessment, 1=CCA assessment
-          optional: false
-        - name: det2
-          bit_width: 1
-          byte_positions:
-          - - 2
-            - '1'
-          description: CCA assessment for channel 2. 0=no CCA assessment, 1=CCA assessment
-          optional: false
-        - name: det1
-          bit_width: 1
-          byte_positions:
-          - - 2
-            - '0'
-          description: CCA assessment for channel 1. 0=no CCA assessment, 1=CCA assessment
-          optional: false
-        - name: bitrate_ch4
-          bit_width: 2
-          byte_positions:
-          - - 3
-            - '7:6'
-          description: Data rate of the 4th channel to be scanned
-          optional: false
-          enum:
-            R1: 1
-            R2: 2
-            R3: 3
-        - name: bitrate_ch3
-          bit_width: 2
-          byte_positions:
-          - - 3
-            - '5:4'
-          description: Data rate of the 3rd channel to be scanned
-          optional: false
-          enum:
-            R1: 1
-            R2: 2
-            R3: 3
-        - name: bitrate_ch2
-          bit_width: 2
-          byte_positions:
-          - - 3
-            - '3:2'
-          description: Data rate of the 2nd channel to be scanned
-          optional: false
-          enum:
-            R1: 1
-            R2: 2
-            R3: 3
-        - name: bitrate_ch1
-          bit_width: 2
-          byte_positions:
-          - - 3
-            - '1:0'
-          description: Data rate of the 1st channel to be scanned
-          optional: false
-          enum:
-            R1: 1
-            R2: 2
-            R3: 3
-        - name: zwave_addr_comp
-          bit_width: 2
-          byte_positions:
-          - - 4
-            - '1:0'
-          description: Address comparator mode, same format as for the SetZwaveParams command
-          optional: false
-          enum:
-            'OFF': 0
-            HOMEID: 1
-            HOMEID_BEAM: 2
-        - name: fcs_mode
-          bit_width: 1
-          byte_positions:
-          - - 9
-            - '0'
-          description: 'FCS mode: auto to automatically generate FCS in TX and remove it in RX. In fifo mode, the FCS is expected
-            to be part of the payload ans is not checked in RX.'
-          optional: false
-          enum:
-            AUTO: 0
-            FIFO: 1
-        - name: rf_freq_ch1
-          bit_width: 32
-          byte_positions:
-          - - 6
-            - '7:0'
-          - - 7
-            - '7:0'
-          - - 8
-            - '7:0'
-          - - 9
-            - '7:0'
-          description: RF frequency of the 1st channel. Same format as for the SetRfFrequency command
-          optional: false
-        - name: timeout_ch1
-          bit_width: 8
-          byte_positions:
-          - - 10
-            - '7:0'
-          description: Scan timeout for the 1st channel, 1LSB = 30 microseconds
-          optional: false
-        - name: rf_freq_ch2
-          bit_width: 32
-          byte_positions:
-          - - 11
-            - '7:0'
-          - - 12
-            - '7:0'
-          - - 13
-            - '7:0'
-          - - 14
-            - '7:0'
-          description: RF frequency of the 2nd channel
-          optional: false
-        - name: timeout_ch2
-          bit_width: 8
-          byte_positions:
-          - - 15
-            - '7:0'
-          description: Scan timeout for the 2nd channel, 1LSB = 30 microseconds
-          optional: false
-        - name: rf_freq_ch3
-          bit_width: 32
-          byte_positions:
-          - - 16
-            - '7:0'
-          - - 17
-            - '7:0'
-          - - 18
-            - '7:0'
-          - - 19
-            - '7:0'
-          description: RF frequency of the 3rd channel
-          optional: true
-        - name: timeout_ch3
-          bit_width: 8
-          byte_positions:
-          - - 20
-            - '7:0'
-          description: Scan timeout for the 3rd channel, 1LSB = 30 microseconds
-          optional: true
-        - name: rf_freq_ch4
-          bit_width: 32
-          byte_positions:
-          - - 21
-            - '7:0'
-          - - 22
-            - '7:0'
-          - - 23
-            - '7:0'
-          - - 24
-            - '7:0'
-          description: RF frequency of the 4th channel
-          optional: true
-        - name: timeout_ch4
-          bit_width: 8
-          byte_positions:
-          - - 25
-            - '7:0'
-          description: Scan timeout for the 4th channel, 1LSB = 30 microseconds
-          optional: true
+
       SetZwaveScan:
         opcode: 669
         description: This command is used to enter the Zwave RX scan mode. The scan mode will alternate between data rates
           and channels and attempt to detect an incoming packet
         parameters: []
+
+      GetZwaveRxStats:
+        opcode: 0x0299
+        description: "Gets the internal statistics of the received packets. Statistics are reset on a POR, sleep without memory retention and the command ResetRxStats"
+        parameters: []
+        status_fields:
+          - name: pkt_rx
+            bit_width: 16
+            byte_positions: [[2, "7:0"], [3, "7:0"]]
+            description: "Total number of received packets"
+            optional: false
+          - name: crc_error
+            bit_width: 16
+            byte_positions: [[4, "7:0"], [5, "7:0"]]
+            description: "Number of received packets with a CRC error"
+            optional: false
+          - name: len_error
+            bit_width: 16
+            byte_positions: [[6, "7:0"], [7, "7:0"]]
+            description: "Number of packets with a length error"
+            optional: false
+          - name: pbl_det
+            bit_width: 16
+            byte_positions: [[8, "7:0"], [9, "7:0"]]
+            description: "Number of detections"
+            optional: true
+          - name: sync_ok
+            bit_width: 16
+            byte_positions: [[10, "7:0"], [11, "7:0"]]
+            description: "Number of good found syncword"
+            optional: true
+          - name: sync_fail
+            bit_width: 16
+            byte_positions: [[12, "7:0"], [13, "7:0"]]
+            description: "Number of failed syncword"
+            optional: true
+          - name: timeout
+            bit_width: 16
+            byte_positions: [[14, "7:0"], [15, "7:0"]]
+            description: "Number of RTC timeouts"
+            optional: true

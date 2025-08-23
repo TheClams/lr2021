@@ -4,6 +4,7 @@ use crate::status::Status;
 
 /// Spreading factor
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum Sf {
     Sf5 = 5,
     Sf6 = 6,
@@ -17,6 +18,7 @@ pub enum Sf {
 
 /// Bandwidth selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum LoraBw {
     Bw7 = 0,
     Bw15 = 1,
@@ -38,6 +40,7 @@ pub enum LoraBw {
 
 /// Coding rate
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum LoraCr {
     NoCoding = 0,
     Cr1Ham45Si = 1,
@@ -53,6 +56,7 @@ pub enum LoraCr {
 
 /// Low Data Rate Optimisation. Enable for high Spreading factor to increase tolerance to clock drift.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum Ldro {
     Off = 0,
     On = 1,
@@ -60,6 +64,7 @@ pub enum Ldro {
 
 /// Header type selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum HeaderType {
     Explicit = 0,
     Implicit = 1,
@@ -67,6 +72,7 @@ pub enum HeaderType {
 
 /// Format selection for symbols parameter: either an integer number of symbol or a floating point representation (exponent on 3 MSB bits with mantissa on 5 LSB bits) When Exponent = 0, mantissa is multiplied by 2, and for exponent different from from 0 it is multipplied by 2^(n+2) (TBC)
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum TimeoutFormat {
     Integer = 0,
     Float = 1,
@@ -74,6 +80,7 @@ pub enum TimeoutFormat {
 
 /// Action taken after CAD
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum ExitMode {
     CadOnly = 0,
     CadRx = 1,
@@ -82,6 +89,7 @@ pub enum ExitMode {
 
 /// TX Sync function
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum Function {
     Disabled = 0,
     Master = 1,

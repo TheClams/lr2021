@@ -4,6 +4,7 @@ use crate::status::{Status,Intr};
 
 /// DIO function selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum DioFunc {
     None = 0,
     Irq = 1,
@@ -18,6 +19,7 @@ pub enum DioFunc {
 
 /// Pull-up/down configuration for sleep mode. DIO_PULL_AUTO means if DIO value in Standby was '1', it will be pulled-up, if '0' it will be pulled-down
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum PullDrive {
     PullNone = 0,
     PullDown = 1,
@@ -27,6 +29,7 @@ pub enum PullDrive {
 
 /// LF clock source selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum LfClock {
     Rc = 0,
     Xtal = 1,
@@ -35,6 +38,7 @@ pub enum LfClock {
 
 /// SIMO usage configuration
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum SimoUsage {
     Off = 0,
     All = 1,
@@ -44,6 +48,7 @@ pub enum SimoUsage {
 
 /// Ramp time RC to RU resolution
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum RampTimeRc2ruUnit {
     Res2u = 0,
     Res4u = 1,
@@ -53,6 +58,7 @@ pub enum RampTimeRc2ruUnit {
 
 /// Ramp time TX to RU resolution
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum RampTimeTx2ruUnit {
     Res2u = 0,
     Res4u = 1,
@@ -62,6 +68,7 @@ pub enum RampTimeTx2ruUnit {
 
 /// Ramp time RU to RC resolution
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum RampTimeRu2rcUnit {
     Res2u = 0,
     Res4u = 1,
@@ -71,6 +78,7 @@ pub enum RampTimeRu2rcUnit {
 
 /// Ramp down time
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum RampTimeRampDownUnit {
     Res2u = 0,
     Res4u = 1,
@@ -80,6 +88,7 @@ pub enum RampTimeRampDownUnit {
 
 /// Format of returned value
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum VbatFormat {
     Raw = 0,
     Millivolts = 1,
@@ -87,6 +96,7 @@ pub enum VbatFormat {
 
 /// ADC resolution for measurement
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum AdcRes {
     Res8bit = 0,
     Res9bit = 1,
@@ -98,6 +108,7 @@ pub enum AdcRes {
 
 /// Temperature sensor source
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum TempSrc {
     Vbe = 0,
     Xosc = 1,
@@ -106,6 +117,7 @@ pub enum TempSrc {
 
 /// Standby mode selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum StandbyMode {
     Rc = 0,
     Xosc = 1,
@@ -113,6 +125,7 @@ pub enum StandbyMode {
 
 /// Threshold voltage for EOL interrupt
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum Trim {
     Trim1p6v = 0,
     Trim1p67v = 1,
@@ -126,6 +139,7 @@ pub enum Trim {
 
 /// NTC source enable
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum Ntc {
     Disabled = 0,
     Enabled = 1,
@@ -133,6 +147,7 @@ pub enum Ntc {
 
 /// Temperature compensation mode
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum CompMode {
     Disabled = 0,
     Relative = 1,

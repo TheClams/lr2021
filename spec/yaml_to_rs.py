@@ -171,6 +171,7 @@ def gen_enum(field: Field) -> str:
     enum_name = snake_to_pascal(field.name)
     lines = ["",f"/// {field.description}"]
     lines.append("#[derive(Debug, Clone, Copy, PartialEq, Eq)]")
+    lines.append("#[cfg_attr(feature = \"defmt\", derive(defmt::Format))]")
     lines.append(f"pub enum {enum_name} {{")
 
     for variant_name, value in field.enum.items():
