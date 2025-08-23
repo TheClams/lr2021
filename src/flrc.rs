@@ -4,6 +4,22 @@ use embedded_hal_async::spi::SpiBus;
 pub use super::cmd::cmd_flrc::*;
 use super::{BusyPin, Lr2021, Lr2021Error, PulseShape};
 
+pub struct FlrcPacketParams {
+    pub agc_pbl_len: AgcPblLen,
+    pub sw_len: SwLen,
+    pub sw_tx: SwTx,
+    pub sw_match: SwMatch,
+    pub hdr_format: PktFormat,
+    pub crc: Crc,
+    pub pld_len: u16
+}
+
+impl FlrcPacketParams {
+    pub fn new(agc_pbl_len: AgcPblLen, sw_len: SwLen, sw_tx: SwTx, sw_match: SwMatch, hdr_format: PktFormat, crc: Crc, pld_len: u16) -> Self {
+        Self{agc_pbl_len, sw_len, sw_tx, sw_match, hdr_format, crc, pld_len}
+    }
+}
+
 impl<O,SPI, M> Lr2021<O,SPI, M> where
     O: OutputPin, SPI: SpiBus<u8>, M: BusyPin
 {
@@ -15,8 +31,15 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Set FLRC packet parameters: preamble, syncword, header implicit/explicit, CRC and packet length (max 511)
-    pub async fn set_flrc_packet(&mut self, agc_pbl_len: AgcPblLen, sync_len: SyncLen, sync_tx: SyncTx, sync_match: SyncMatch, pkt_format: PktFormat, crc: Crc, pld_len: u16) -> Result<(), Lr2021Error> {
-        let req = set_flrc_packet_params_cmd(agc_pbl_len, sync_len, sync_tx, sync_match, pkt_format, crc, pld_len);
+    pub async fn set_flrc_packet(&mut self, params: &FlrcPacketParams) -> Result<(), Lr2021Error> {
+        let req = set_flrc_packet_params_cmd(
+            params.agc_pbl_len,
+            params.sw_len,
+            params.sw_tx,
+            params.sw_match,
+            params.hdr_format,
+            params.crc,
+            params.pld_len);
         self.cmd_wr(&req).await
     }
 

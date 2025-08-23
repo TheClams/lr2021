@@ -40,24 +40,24 @@ pub enum AgcPblLen {
 
 /// Length of syncword (unit is 2 bytes: 0/16/32 bits). Must be 0 if sync_match is OFF
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum SyncLen {
-    Sync0Bits = 0,
-    Sync16Bits = 1,
-    Sync32Bits = 2,
+pub enum SwLen {
+    SwNone = 0,
+    Sw16b = 1,
+    Sw32b = 2,
 }
 
 /// Defines which syncword to use for TX operations
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum SyncTx {
-    NoSyncword = 0,
-    UseSyncword1 = 1,
-    UseSyncword2 = 2,
-    UseSyncword3 = 3,
+pub enum SwTx {
+    SwNone = 0,
+    Sw1 = 1,
+    Sw2 = 2,
+    Sw3 = 3,
 }
 
 /// Match syncword(s) configuration
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum SyncMatch {
+pub enum SwMatch {
     MatchNone = 0,
     Match1 = 1,
     Match2 = 2,
@@ -97,15 +97,15 @@ pub fn set_flrc_modulation_params_cmd(flrc_bitrate: FlrcBitrate, flrc_cr: FlrcCr
 }
 
 /// Sets the packet parameters for FLRC packets. FW configures respective modem registers
-pub fn set_flrc_packet_params_cmd(agc_pbl_len: AgcPblLen, sync_len: SyncLen, sync_tx: SyncTx, sync_match: SyncMatch, pkt_format: PktFormat, crc: Crc, pld_len: u16) -> [u8; 6] {
+pub fn set_flrc_packet_params_cmd(agc_pbl_len: AgcPblLen, sw_len: SwLen, sw_tx: SwTx, sw_match: SwMatch, pkt_format: PktFormat, crc: Crc, pld_len: u16) -> [u8; 6] {
     let mut cmd = [0u8; 6];
     cmd[0] = 0x02;
     cmd[1] = 0x49;
 
     cmd[2] |= ((agc_pbl_len as u8) & 0xF) << 2;
-    cmd[2] |= (sync_len as u8) & 0x3;
-    cmd[2] |= ((sync_tx as u8) & 0x3) << 6;
-    cmd[3] |= ((sync_match as u8) & 0x7) << 3;
+    cmd[2] |= (sw_len as u8) & 0x3;
+    cmd[3] |= ((sw_tx as u8) & 0x3) << 6;
+    cmd[3] |= ((sw_match as u8) & 0x7) << 3;
     cmd[3] |= ((pkt_format as u8) & 0x1) << 2;
     cmd[3] |= (crc as u8) & 0x3;
     cmd[4] |= ((pld_len >> 8) & 0xFF) as u8;

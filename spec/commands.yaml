@@ -1068,7 +1068,7 @@ categories:
             LEN_24_BITS: 5
             LEN_28_BITS: 6
             LEN_32_BITS: 7
-        - name: sync_len
+        - name: sw_len
           bit_width: 2
           byte_positions:
           - - 2
@@ -1076,22 +1076,22 @@ categories:
           description: 'Length of syncword (unit is 2 bytes: 0/16/32 bits). Must be 0 if sync_match is OFF'
           optional: false
           enum:
-            SYNC_0_BITS: 0
-            SYNC_16_BITS: 1
-            SYNC_32_BITS: 2
-        - name: sync_tx
+            SW_NONE: 0
+            SW_16B: 1
+            SW_32B: 2
+        - name: sw_tx
           bit_width: 2
           byte_positions:
-          - - 2
+          - - 3
             - '7:6'
           description: Defines which syncword to use for TX operations
           optional: false
           enum:
-            NO_SYNCWORD: 0
-            USE_SYNCWORD_1: 1
-            USE_SYNCWORD_2: 2
-            USE_SYNCWORD_3: 3
-        - name: sync_match
+            SW_NONE: 0
+            SW1: 1
+            SW2: 2
+            SW3: 3
+        - name: sw_match
           bit_width: 3
           byte_positions:
           - - 3

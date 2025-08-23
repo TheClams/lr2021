@@ -237,6 +237,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
 
     /// Write a command
     pub async fn cmd_wr(&mut self, req: &[u8]) -> Result<(), Lr2021Error> {
+        // #[cfg(feature = "defmt")]{defmt::info!("[CMD WR] {:02x}", req);}
         self.cmd_wr_begin(req).await?;
         self.nss.set_high().map_err(|_| Lr2021Error::Pin)
     }
@@ -254,6 +255,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
             .transfer_in_place(rsp).await
             .map_err(|_| Lr2021Error::Spi)?;
         self.nss.set_high().map_err(|_| Lr2021Error::Pin)?;
+        // #[cfg(feature = "defmt")]{defmt::info!("[CMD RD] {:02x} => {:02x}", req, rsp);}
         // Save the first two bytes from the response to keep the command status
         self.buffer.updt_status(rsp);
         self.buffer.cmd_status().check()
