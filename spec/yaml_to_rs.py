@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# pyright: reportAny=false
 
 import yaml
 import sys
@@ -106,12 +107,12 @@ def validate_field(field: Field, context: str) -> None:
 def parse_field(field_data: dict[str, Any], context: str) -> Field:  # pyright: ignore[reportExplicitAny]
     """Parse a field from YAML data"""
     try:
-        name : str = field_data['name']  # pyright: ignore[reportAny]
-        bit_width : int = field_data['bit_width']  # pyright: ignore[reportAny]
-        byte_positions = parse_byte_positions(field_data.get('byte_positions', []))  # pyright: ignore[reportAny]
-        signed : bool = field_data.get('signed', False)  # pyright: ignore[reportAny]
-        description : str = field_data['description']  # pyright: ignore[reportAny]
-        optional : bool = field_data.get('optional', False)  # pyright: ignore[reportAny]
+        name : str = field_data['name']
+        bit_width : int = field_data['bit_width']
+        byte_positions = parse_byte_positions(field_data.get('byte_positions', []))
+        signed : bool = field_data.get('signed', False)
+        description : str = field_data.get('description', '')
+        optional : bool = field_data.get('optional', False)
         enum = field_data.get('enum')
         
         field = Field(name, bit_width, signed, byte_positions, description, optional, enum)
@@ -126,17 +127,17 @@ def parse_field(field_data: dict[str, Any], context: str) -> Field:  # pyright: 
 def parse_command(cmd_name: str, cmd_data: dict[str, Any]) -> Command:  # pyright: ignore[reportExplicitAny]
     """Parse a command from YAML data"""
     try:
-        opcode : int = cmd_data['opcode']  # pyright: ignore[reportAny]
-        description : str = cmd_data['description']  # pyright: ignore[reportAny]
+        opcode : int = cmd_data['opcode']
+        description : str = cmd_data.get('description', '')
         
         parameters : list[Field] = []
-        for param_data in cmd_data.get('parameters', []): # pyright: ignore[reportAny]
-            param = parse_field(param_data, f"command '{cmd_name}' parameter") # pyright: ignore[reportAny]
+        for param_data in cmd_data.get('parameters', []):
+            param = parse_field(param_data, f"command '{cmd_name}' parameter")
             parameters.append(param)
         
         status_fields : list[Field] = []
-        for field_data in cmd_data.get('status_fields', []): # pyright: ignore[reportAny]
-            field = parse_field(field_data, f"command '{cmd_name}' status_field") # pyright: ignore[reportAny]
+        for field_data in cmd_data.get('status_fields', []):
+            field = parse_field(field_data, f"command '{cmd_name}' status_field")
             status_fields.append(field)
         
         return Command(cmd_name, opcode, description, parameters, status_fields)
@@ -206,6 +207,8 @@ def size_of(fields: list[Field]) -> int:
 
 def gen_req(cmd: Command, _category: str, advanced: bool = False) -> str:
     """Generate Rust request function"""
+    if cmd.opcode < 0 :
+        return ''
     func_name = to_snake(cmd.name)
     
     if advanced:
@@ -575,21 +578,21 @@ def main():
         if yaml_path.is_file():
             # Single YAML file
             with open(yaml_path) as f:
-                data = yaml.safe_load(f)  # pyright: ignore[reportAny]
+                data = yaml.safe_load(f)
             
             # Parse commands
-            for category, category_data in data.get('categories', {}).items():  # pyright: ignore[reportAny]
+            for category, category_data in data.get('categories', {}).items():
                 print(f'Category {category}')
                 commands : list[Command] = []
-                for cmd_name, cmd_data in category_data.get('commands', {}).items():  # pyright: ignore[reportAny]
+                for cmd_name, cmd_data in category_data.get('commands', {}).items():
                     try:
-                        cmd = parse_command(cmd_name, cmd_data)  # pyright: ignore[reportAny]
+                        cmd = parse_command(cmd_name, cmd_data)
                         commands.append(cmd)
                     except ValidationError as e:
                         print(f"Error in {yaml_path}:{cmd_name}: {e}", file=sys.stderr)
                         sys.exit(1)
             
-                gen_file(category, commands, output_dir) # pyright: ignore[reportAny]
+                gen_file(category, commands, output_dir)
 
         else:
             print(f"Error: {yaml_path} is not a file or directory", file=sys.stderr)

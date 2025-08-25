@@ -2,7 +2,12 @@ use embedded_hal::digital::v2::OutputPin;
 use embedded_hal_async::spi::SpiBus;
 
 pub use super::cmd::cmd_lora::*;
-use super::{cmd::cmd_regmem::write_reg_mem_mask32_cmd, system::set_additional_reg_to_retain_cmd, BusyPin, Lr2021, Lr2021Error};
+pub use super::cmd::cmd_ranging::*;
+use super::{
+    cmd::cmd_regmem::write_reg_mem_mask32_cmd,
+    system::set_additional_reg_to_retain_cmd,
+    BusyPin, Lr2021, Lr2021Error
+};
 
 impl<O,SPI, M> Lr2021<O,SPI, M> where
     O: OutputPin, SPI: SpiBus<u8>, M: BusyPin
@@ -77,7 +82,6 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
         self.cmd_wr(&req).await
     }
 
-
     const ADDR_LORA_PARAM : u32 = 0xF30A14;
     /// Enable compatibility with SX127x for SF6 communication and syncword format
     /// Must be called after each SetLoraModulation
@@ -92,5 +96,68 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
         Ok(())
     }
 
+    /// Set the device address for ranging operation
+    /// The device will answer to ranging request only if the request address matches the device address
+    /// The length allows to define how many bytes from the address are checked (starting from LSB)
+    pub async fn set_ranging_dev_addr(&mut self, addr: u32, length: Option<CheckLength>) -> Result<(), Lr2021Error> {
+         let req = set_ranging_addr_cmd(addr, length.unwrap_or(CheckLength::Addr32b));
+        self.cmd_wr(&req).await
+   }
+
+    /// Set the request address for ranging operation
+    pub async fn set_ranging_req_addr(&mut self, addr: u32) -> Result<(), Lr2021Error> {
+         let req = set_ranging_req_addr_cmd(addr);
+        self.cmd_wr(&req).await
+    }
+
+    /// Set the ranging calibration value
+    pub async fn set_ranging_txrx_delay(&mut self, delay: u32) -> Result<(), Lr2021Error> {
+         let req = set_ranging_tx_rx_delay_cmd(delay);
+        self.cmd_wr(&req).await
+   }
+
+    /// Set the ranging parameters: Extended/Spy and number of symbols
+    /// Extended mode initiate a second exchange with an inverted direction to improve accuracy and provide some relative speed indication
+    /// Spy mode allows to estimate distance between two device while they are performing a ranging exchange.
+    /// Number of symbols should typically be between 8 to 16 symbols, with 12 being close to optimal performances
+    pub async fn set_ranging_params(&mut self, extended: bool, spy_mode: bool, nb_symbols: u8) -> Result<(), Lr2021Error> {
+         let req = set_ranging_params_cmd(extended, spy_mode, nb_symbols);
+        self.cmd_wr(&req).await
+   }
+
+    /// Return the result of last ranging exchange (round-trip time of flight and RSSI)
+    /// The distance is provided
+    pub async fn get_ranging_result(&mut self) -> Result<RangingResultRsp, Lr2021Error> {
+        let req = get_ranging_result_req(RangingResKind::LatestRaw);
+        let mut rsp = RangingResultRsp::new();
+        self.cmd_rd(&req, rsp.as_mut()).await?;
+        Ok(rsp)
+    }
+
+    /// Return the result of last extended ranging exchange (round-trip time of flight and RSSI for both exchange)
+    /// The round-trip time of flight can be converted in meter with the formula: rng*150/(2^12*Bandwidth)
+    pub async fn get_ranging_ext_result(&mut self) -> Result<RangingExtResultRsp, Lr2021Error> {
+        let req = get_ranging_result_req(RangingResKind::ExtendedRaw);
+        let mut rsp = RangingExtResultRsp::new();
+        self.cmd_rd(&req, rsp.as_mut()).await?;
+        Ok(rsp)
+    }
+
+    /// Return the gain step used during ranging (the second gain step is only valid for extended ranging)
+    /// This is mainly for debug, since gain can influence very slightly the results
+    pub async fn get_ranging_gain(&mut self) -> Result<RangingGainStepRsp, Lr2021Error> {
+        let req = get_ranging_result_req(RangingResKind::GainSteps);
+        let mut rsp = RangingGainStepRsp::new();
+        self.cmd_rd(&req, rsp.as_mut()).await?;
+        Ok(rsp)
+    }
+
+    /// Return statistics about ranging exchanges
+    pub async fn get_ranging_stats(&mut self) -> Result<RangingStatsRsp, Lr2021Error> {
+        let req = get_ranging_stats_req();
+        let mut rsp = RangingStatsRsp::new();
+        self.cmd_rd(&req, rsp.as_mut()).await?;
+        Ok(rsp)
+    }
 
 }

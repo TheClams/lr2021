@@ -3109,8 +3109,12 @@ categories:
             - '2:0'
           description: Defines how many of the 4 bytes of the address are checked against the request address sent by the
             master. Checked bytes are the LSB if check_length<4
-          optional: false
-          default: 4
+          enum:
+            ADDR_8B: 1
+            ADDR_16B: 2
+            ADDR_24B: 3
+            ADDR_32B: 4
+
       SetRangingReqAddr:
         opcode: 633
         description: Sets the ranging Id for the requests (used in the master)
@@ -3135,7 +3139,7 @@ categories:
           The Distance [m] = rng1*150/(2^12*LoraBW), with LoraBW in MHz. For extended mode type=1 results, rng1 and rng2 values
           should be averaged to get a distance estimation unaffected by Doppler effect
         parameters:
-        - name: kind
+        - name: ranging_res_kind
           bit_width: 8
           byte_positions:
           - - 2
@@ -3147,6 +3151,28 @@ categories:
             EXTENDED_RAW: 1
             GAIN_STEPS: 2
         status_fields:
+        - name: rng
+          bit_width: 24
+          byte_positions:
+          - - 2
+            - '7:0'
+          - - 3
+            - '7:0'
+          - - 4
+            - '7:0'
+          description: Ranging measurement value. Distance in meter is given by rng*150/(2^12*Bandwidth),
+          optional: false
+        - name: rssi
+          bit_width: 8
+          byte_positions:
+          - - 5
+            - '7:0'
+          description: RSSI value
+          optional: false
+      GetRangingExtResult:
+        opcode: -1
+        parameters: []
+        status_fields:
         - name: rng1
           bit_width: 24
           byte_positions:
@@ -3156,14 +3182,14 @@ categories:
             - '7:0'
           - - 4
             - '7:0'
-          description: First ranging measurement value (always present)
+          description: First ranging measurement value
           optional: false
         - name: rssi1
           bit_width: 8
           byte_positions:
           - - 5
             - '7:0'
-          description: RSSI value for first ranging measurement (always present)
+          description: RSSI value for first ranging measurement
           optional: false
         - name: rng2
           bit_width: 24
@@ -3174,15 +3200,33 @@ categories:
             - '7:0'
           - - 8
             - '7:0'
-          description: Second ranging measurement value (only for type=1 extended mode)
-          optional: true
+          description: Second ranging measurement value
+          optional: false
         - name: rssi2
           bit_width: 8
           byte_positions:
           - - 9
             - '7:0'
-          description: RSSI value for second ranging measurement (only for type=1 extended mode)
-          optional: true
+          description: RSSI value for second ranging measurement
+          optional: false
+      GetRangingGainStep:
+        opcode: -1
+        parameters: []
+        status_fields:
+        - name: gain1
+          bit_width: 8
+          byte_positions:
+          - - 2
+            - '7:0'
+          description: Radio gain used for first measurement
+          optional: false
+        - name: gain2
+          bit_width: 8
+          byte_positions:
+          - - 3
+            - '7:0'
+          description: Radio gain used for second measurement (if available)
+          optional: false
       SetRangingTxRxDelay:
         opcode: 635
         description: Sets the Tx->Rx delay for the ranging calibration
@@ -3204,28 +3248,22 @@ categories:
         opcode: 636
         description: Sets the ranging specific parameters
         parameters:
-        - name: extended_mode
+        - name: extended
           bit_width: 1
           byte_positions:
           - - 2
             - '7'
-          description: 'Extended mode enable: 0=disabled, 1=enabled'
+          description: 'Enable extended mode (second exchange with inverted direction'
           optional: false
-          enum:
-            DISABLED: 0
-            ENABLED: 1
         - name: spy_mode
           bit_width: 1
           byte_positions:
           - - 2
             - '6'
-          description: 'Spy mode enable: Set to 1 to enable spy mode on the next set_rx. In SPY mode, the radio acts like
-            a normal device in slave mode and will send a response to any request for its address, but will also listen to
-            requests/responses pairs not addressed to it'
+          description: 'EEnable spy mode on the next set_rx. In SPY mode, the radio acts like
+            a normal device in slave mode and will send a response to any request for its address,
+            but will also listen to requests/responses pairs not addressed to it'
           optional: false
-          enum:
-            DISABLED: 0
-            ENABLED: 1
         - name: nb_symbols
           bit_width: 6
           byte_positions:
