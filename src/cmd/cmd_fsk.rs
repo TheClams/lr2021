@@ -209,7 +209,7 @@ pub fn set_fsk_modulation_params_cmd(bitrate: u32, pulse_shape: PulseShape, rx_b
 }
 
 /// Sets the packet parameters for FSK packets.. Command will fail if packet type is not FSK
-pub fn set_fsk_packet_params_cmd(pbl_len_tx: u16, pbl_len_detect: PblLenDetect, pbl_long: bool, pld_len_unit: PldLenUnit, addr_comp: AddrComp, fsk_pkt_format: FskPktFormat, pld_len: u16, crc: Crc, dc_free: u8) -> [u8; 9] {
+pub fn set_fsk_packet_params_cmd(pbl_len_tx: u16, pbl_len_detect: PblLenDetect, pbl_long: bool, pld_len_unit: PldLenUnit, addr_comp: AddrComp, fsk_pkt_format: FskPktFormat, pld_len: u16, crc: Crc, dc_free: bool) -> [u8; 9] {
     let mut cmd = [0u8; 9];
     cmd[0] = 0x02;
     cmd[1] = 0x41;
@@ -224,7 +224,7 @@ pub fn set_fsk_packet_params_cmd(pbl_len_tx: u16, pbl_len_detect: PblLenDetect, 
     cmd[6] |= ((pld_len >> 8) & 0xFF) as u8;
     cmd[7] |= (pld_len & 0xFF) as u8;
     cmd[8] |= ((crc as u8) & 0xF) << 4;
-    cmd[8] |= dc_free & 0xF;
+    if dc_free { cmd[8] |= 1; }
     cmd
 }
 

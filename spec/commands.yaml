@@ -1507,10 +1507,10 @@ categories:
             CRC_3_BYTE_INV: 11
             CRC_4_BYTE_INV: 12
         - name: dc_free
-          bit_width: 4
+          bit_width: 1
           byte_positions:
           - - 8
-            - '3:0'
+            - '0'
           description: Whitening enable
           optional: false
       SetFskWhiteningParams:

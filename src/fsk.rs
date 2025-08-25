@@ -15,7 +15,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Set FLRC packet parameters: preamble, syncword, header implicit/explicit, CRC and packet length (max 511)
-    pub async fn set_fsk_packet(&mut self, pbl_len_tx: u16, pbl_len_detect: PblLenDetect, pbl_long: bool, pld_len_unit: PldLenUnit, addr_comp: AddrComp, fsk_pkt_format: FskPktFormat, pld_len: u16, crc: Crc, dc_free: u8) -> Result<(), Lr2021Error> {
+    pub async fn set_fsk_packet(&mut self, pbl_len_tx: u16, pbl_len_detect: PblLenDetect, pbl_long: bool, pld_len_unit: PldLenUnit, addr_comp: AddrComp, fsk_pkt_format: FskPktFormat, pld_len: u16, crc: Crc, dc_free: bool) -> Result<(), Lr2021Error> {
         let req = set_fsk_packet_params_cmd(pbl_len_tx, pbl_len_detect, pbl_long, pld_len_unit, addr_comp, fsk_pkt_format, pld_len, crc, dc_free);
         self.cmd_wr(&req).await
     }
