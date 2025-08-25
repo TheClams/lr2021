@@ -4651,7 +4651,7 @@ categories:
           - - 6
             - '7:0'
           description: 'Detection on preamble (16,32), or on syncword (0), or automatic (0xff): always 24bits'
-          optional: true
+          optional: false
           default: 255
       GetWisunPacketStatus:
         opcode: 627
@@ -4722,6 +4722,49 @@ categories:
             - '7:0'
           description: Frame length for TX for normal packets, or header value for mode_switch packets
           optional: false
+      GetWisunRxStats:
+        opcode: 0x026C
+        description: Get the Rx statistics for WiSUN packets
+        parameters: []
+        status_fields:
+        - name: pkt_rx
+          bit_width: 16
+          byte_positions: [[2, "7:0"], [3, "7:0"]]
+          description: Total number of received packets
+        - name: crc_error
+          bit_width: 16
+          byte_positions: [[4, "7:0"], [5, "7:0"]]
+          description: Number of received packets with a CRC error
+        - name: len_error
+          bit_width: 16
+          byte_positions: [[6, "7:0"], [7, "7:0"]]
+          description: Number of packets with a length error
+        - name: pbl_det
+          bit_width: 16
+          byte_positions: [[8, "7:0"], [9, "7:0"]]
+          description: Number of detections
+          optional: true
+        - name: sync_ok
+          bit_width: 16
+          byte_positions: [[10, "7:0"], [11, "7:0"]]
+          description: Number of good found syncword
+          optional: true
+        - name: sync_fail
+          bit_width: 16
+          byte_positions: [[12, "7:0"], [13, "7:0"]]
+          description: Number of failed syncword
+          optional: true
+        - name: timeout
+          bit_width: 16
+          byte_positions: [[14, "7:0"], [15, "7:0"]]
+          description: Number of rtc timeouts
+          optional: true
+        - name: crc_ok
+          bit_width: 16
+          byte_positions: [[16, "7:0"], [17, "7:0"]]
+          description: Number of packets received with correct CRC
+          optional: true
+
   zigbee:
     commands:
       SetZigbeeParams:
@@ -5491,7 +5534,6 @@ categories:
           bit_width: 8
           byte_positions: [[9, "7:0"]]
           description: "How many bits in the preamble to use for detection, or 0xff for auto-setting (based on pbl_len_tx)"
-
       GetWmbusRxStats:
         opcode: 0x026C
         description: Get the Rx statistics for wmbus packets
@@ -5534,7 +5576,6 @@ categories:
           byte_positions: [[16, "7:0"], [17, "7:0"]]
           description: Number of packets received with correct CRC
           optional: true
-
       GetWmbusPacketStatus:
         opcode: 0x026D
         description: Get Rx packet status informations for wmbus packets
@@ -5575,7 +5616,6 @@ categories:
           byte_positions: [[10, "7:0"]]
           description: "Link quality indicator (0.25dB)"
           optional: false
-
       SetWmbusAddress:
         opcode: 0x026E
         description: Set the WM-Bus address for RX filtering (A-field)

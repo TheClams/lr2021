@@ -1,6 +1,7 @@
 // Wisun commands API
 
 use crate::status::Status;
+use super::RxBw;
 
 /// WISun mode selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -59,35 +60,18 @@ pub enum FecTx {
 }
 
 /// Configure the wisun mode (1a, 1b, 2a, 2b, 3, 4a, 4b, 5)
-pub fn set_wisun_mode_cmd(wisun_mode: WisunMode, rx_bw: u8) -> [u8; 4] {
+pub fn set_wisun_mode_cmd(wisun_mode: WisunMode, rx_bw: RxBw) -> [u8; 4] {
     let mut cmd = [0u8; 4];
     cmd[0] = 0x02;
     cmd[1] = 0x70;
 
     cmd[2] |= (wisun_mode as u8) & 0x7;
-    cmd[3] |= rx_bw;
+    cmd[3] |= rx_bw as u8;
     cmd
 }
 
 /// Configure the wisun packet parameters
-pub fn set_wisun_packet_params_cmd(fcs_tx: FcsTx, whitening: Whitening, crc_on: CrcOn, mode_switch_tx: ModeSwitchTx, fec_tx: FecTx, frame_len_tx: u16, pbl_len_tx: u8) -> [u8; 6] {
-    let mut cmd = [0u8; 6];
-    cmd[0] = 0x02;
-    cmd[1] = 0x71;
-
-    cmd[2] |= ((fcs_tx as u8) & 0x1) << 5;
-    cmd[2] |= ((whitening as u8) & 0x1) << 4;
-    cmd[2] |= ((crc_on as u8) & 0x1) << 3;
-    cmd[2] |= ((mode_switch_tx as u8) & 0x1) << 2;
-    cmd[2] |= (fec_tx as u8) & 0x3;
-    cmd[3] |= ((frame_len_tx >> 8) & 0xFF) as u8;
-    cmd[4] |= (frame_len_tx & 0xFF) as u8;
-    cmd[5] |= pbl_len_tx;
-    cmd
-}
-
-/// Configure the wisun packet parameters
-pub fn set_wisun_packet_params_adv_cmd(fcs_tx: FcsTx, whitening: Whitening, crc_on: CrcOn, mode_switch_tx: ModeSwitchTx, fec_tx: FecTx, frame_len_tx: u16, pbl_len_tx: u8, pbl_detect: u8) -> [u8; 7] {
+pub fn set_wisun_packet_params_cmd(fcs_tx: FcsTx, whitening: Whitening, crc_on: CrcOn, mode_switch_tx: ModeSwitchTx, fec_tx: FecTx, frame_len_tx: u16, pbl_len_tx: u8, pbl_detect: u8) -> [u8; 7] {
     let mut cmd = [0u8; 7];
     cmd[0] = 0x02;
     cmd[1] = 0x71;
@@ -118,6 +102,11 @@ pub fn set_wisun_packet_len_cmd(frame_len_tx: u16) -> [u8; 4] {
     cmd[2] |= ((frame_len_tx >> 8) & 0xFF) as u8;
     cmd[3] |= (frame_len_tx & 0xFF) as u8;
     cmd
+}
+
+/// Get the Rx statistics for WiSUN packets
+pub fn get_wisun_rx_stats_req() -> [u8; 2] {
+    [0x02, 0x6C]
 }
 
 // Response structs
@@ -173,6 +162,116 @@ impl WisunPacketStatusRsp {
 }
 
 impl AsMut<[u8]> for WisunPacketStatusRsp {
+    fn as_mut(&mut self) -> &mut [u8] {
+        &mut self.0
+    }
+}
+
+/// Response for GetWisunRxStats command
+#[derive(Default)]
+pub struct WisunRxStatsRsp([u8; 8]);
+
+impl WisunRxStatsRsp {
+    /// Create a new response buffer
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Return Status
+    pub fn status(&mut self) -> Status {
+        Status::from_slice(&self.0[..2])
+    }
+
+    /// Total number of received packets
+    pub fn pkt_rx(&self) -> u16 {
+        (self.0[3] as u16) |
+        ((self.0[2] as u16) << 8)
+    }
+
+    /// Number of received packets with a CRC error
+    pub fn crc_error(&self) -> u16 {
+        (self.0[5] as u16) |
+        ((self.0[4] as u16) << 8)
+    }
+
+    /// Number of packets with a length error
+    pub fn len_error(&self) -> u16 {
+        (self.0[7] as u16) |
+        ((self.0[6] as u16) << 8)
+    }
+}
+
+impl AsMut<[u8]> for WisunRxStatsRsp {
+    fn as_mut(&mut self) -> &mut [u8] {
+        &mut self.0
+    }
+}
+
+/// Response for GetWisunRxStats command
+#[derive(Default)]
+pub struct WisunRxStatsRspAdv([u8; 18]);
+
+impl WisunRxStatsRspAdv {
+    /// Create a new response buffer
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Return Status
+    pub fn status(&mut self) -> Status {
+        Status::from_slice(&self.0[..2])
+    }
+
+    /// Total number of received packets
+    pub fn pkt_rx(&self) -> u16 {
+        (self.0[3] as u16) |
+        ((self.0[2] as u16) << 8)
+    }
+
+    /// Number of received packets with a CRC error
+    pub fn crc_error(&self) -> u16 {
+        (self.0[5] as u16) |
+        ((self.0[4] as u16) << 8)
+    }
+
+    /// Number of packets with a length error
+    pub fn len_error(&self) -> u16 {
+        (self.0[7] as u16) |
+        ((self.0[6] as u16) << 8)
+    }
+
+    /// Number of detections
+    pub fn pbl_det(&self) -> u16 {
+        (self.0[9] as u16) |
+        ((self.0[8] as u16) << 8)
+    }
+
+    /// Number of good found syncword
+    pub fn sync_ok(&self) -> u16 {
+        (self.0[11] as u16) |
+        ((self.0[10] as u16) << 8)
+    }
+
+    /// Number of failed syncword
+    pub fn sync_fail(&self) -> u16 {
+        (self.0[13] as u16) |
+        ((self.0[12] as u16) << 8)
+    }
+
+    /// Number of rtc timeouts
+    pub fn timeout(&self) -> u16 {
+        (self.0[15] as u16) |
+        ((self.0[14] as u16) << 8)
+    }
+
+    /// Number of packets received with correct CRC
+    pub fn crc_ok(&self) -> u16 {
+        (self.0[17] as u16) |
+        ((self.0[16] as u16) << 8)
+    }
+}
+
+impl AsMut<[u8]> for WisunRxStatsRspAdv {
     fn as_mut(&mut self) -> &mut [u8] {
         &mut self.0
     }
