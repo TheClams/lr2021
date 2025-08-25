@@ -465,7 +465,7 @@ def gen_file(category: str, commands: list[Command], output_dir: Path) -> None:
         lines.append("use crate::status::{Status,Intr};")
     elif has_rsp:
         lines.append("use crate::status::Status;")
-    if category in ['ble', 'ook', 'zigbee', 'zwave']:
+    if category in ['ble', 'ook', 'zigbee', 'zwave', 'wisun', 'wmbus']:
         lines.append("use super::RxBw;")
     if category in ['flrc', 'bpsk', 'ook']:
         lines.append("use super::PulseShape;")

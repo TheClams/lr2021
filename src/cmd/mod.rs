@@ -11,6 +11,7 @@ pub mod cmd_raw;
 pub mod cmd_regmem;
 pub mod cmd_system;
 pub mod cmd_wisun;
+pub mod cmd_wmbus;
 pub mod cmd_zigbee;
 pub mod cmd_zwave;
 

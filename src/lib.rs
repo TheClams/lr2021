@@ -12,6 +12,7 @@ pub mod fsk;
 pub mod zigbee;
 pub mod zwave;
 pub mod lrfhss;
+pub mod wmbus;
 
 use core::marker::PhantomData;
 

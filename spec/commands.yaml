@@ -4481,6 +4481,98 @@ categories:
             - '7:0'
           description: RX bandwidth. 0xFF means bandwidth is automatically set by the firmware
           optional: false
+          enum:
+            BW_AUTO: 255
+            BW_3076: 0
+            BW_2857: 64
+            BW_2666: 128
+            BW_2222: 192
+            BW_1333: 136
+            BW_1111: 200
+            BW_888: 144
+            BW_769: 24
+            BW_740: 208
+            BW_714: 88
+            BW_666: 152
+            BW_615: 32
+            BW_571: 96
+            BW_555: 216
+            BW_533: 160
+            BW_512: 17
+            BW_476: 81
+            BW_444: 224
+            BW_384: 25
+            BW_370: 209
+            BW_357: 89
+            BW_333: 153
+            BW_307: 33
+            BW_285: 97
+            BW_277: 217
+            BW_266: 161
+            BW_256: 18
+            BW_238: 82
+            BW_222: 225
+            BW_192: 26
+            BW_185: 210
+            BW_178: 90
+            BW_166: 154
+            BW_153: 34
+            BW_142: 98
+            BW_138: 218
+            BW_133: 162
+            BW_128: 19
+            BW_119: 83
+            BW_111: 226
+            BW_96: 27
+            BW_92: 211
+            BW_89: 91
+            BW_83: 155
+            BW_76: 35
+            BW_71: 99
+            BW_69: 219
+            BW_66: 163
+            BW_64: 20
+            BW_59: 84
+            BW_55: 227
+            BW_48: 28
+            BW_46: 212
+            BW_44: 92
+            BW_41: 156
+            BW_38: 36
+            BW_35: 100
+            BW_34: 220
+            BW_33: 164
+            BW_32: 21
+            BW_29: 85
+            BW_27: 228
+            BW_24: 29
+            BW_23: 213
+            BW_22: 93
+            BW_20: 157
+            BW_19: 37
+            BW_17: 101
+            BW_16: 165
+            BW_14: 86
+            BW_13: 229
+            BW_12: 30
+            BW_11: 94
+            BW_10: 158
+            BW_9_6: 38
+            BW_8_9: 102
+            BW_8_7: 222
+            BW_8_3: 166
+            BW_8: 23
+            BW_7_4: 87
+            BW_6_9: 230
+            BW_6: 31
+            BW_5_8: 215
+            BW_5_6: 95
+            BW_5_2: 159
+            BW_4_8: 39
+            BW_4_5: 103
+            BW_4_3: 223
+            BW_4_2: 167
+            BW_3_5: 231
       SetWisunPacketParams:
         opcode: 625
         description: Configure the wisun packet parameters
@@ -5255,3 +5347,240 @@ categories:
             byte_positions: [[14, "7:0"], [15, "7:0"]]
             description: "Number of RTC timeouts"
             optional: true
+
+  wmbus:
+    commands:
+      SetWmbusParams:
+        opcode: 0x026A
+        description: Configure the wm-bus mode according to EN13757-4 2019
+        parameters:
+        - name: wmbus_mode
+          bit_width : 4
+          byte_positions: [[2, "3:0"]]
+          description: WM-Bus mode selection
+          enum:
+            MODE_S: 0
+            MODE_T1: 1
+            MODE_T2_O2M: 2
+            MODE_T2_M2O: 3
+            MODE_R2: 4
+            MODE_C1: 5
+            MODE_C2_O2M: 6
+            MODE_C2_M2O: 7
+            MODE_N_4_8: 8
+            MODE_N_2_4: 9
+            MODE_N_6_4: 10
+            MODE_N_19_2: 11
+            MODE_F2: 12
+        - name: rx_bw
+          bit_width: 8
+          byte_positions: [[3, "7:0"]]
+          description: Configures the rx_bw. 0xFF means automatic rx_bw chosen by the firmware
+          enum:
+            BW_AUTO: 255
+            BW_3076: 0
+            BW_2857: 64
+            BW_2666: 128
+            BW_2222: 192
+            BW_1333: 136
+            BW_1111: 200
+            BW_888: 144
+            BW_769: 24
+            BW_740: 208
+            BW_714: 88
+            BW_666: 152
+            BW_615: 32
+            BW_571: 96
+            BW_555: 216
+            BW_533: 160
+            BW_512: 17
+            BW_476: 81
+            BW_444: 224
+            BW_384: 25
+            BW_370: 209
+            BW_357: 89
+            BW_333: 153
+            BW_307: 33
+            BW_285: 97
+            BW_277: 217
+            BW_266: 161
+            BW_256: 18
+            BW_238: 82
+            BW_222: 225
+            BW_192: 26
+            BW_185: 210
+            BW_178: 90
+            BW_166: 154
+            BW_153: 34
+            BW_142: 98
+            BW_138: 218
+            BW_133: 162
+            BW_128: 19
+            BW_119: 83
+            BW_111: 226
+            BW_96: 27
+            BW_92: 211
+            BW_89: 91
+            BW_83: 155
+            BW_76: 35
+            BW_71: 99
+            BW_69: 219
+            BW_66: 163
+            BW_64: 20
+            BW_59: 84
+            BW_55: 227
+            BW_48: 28
+            BW_46: 212
+            BW_44: 92
+            BW_41: 156
+            BW_38: 36
+            BW_35: 100
+            BW_34: 220
+            BW_33: 164
+            BW_32: 21
+            BW_29: 85
+            BW_27: 228
+            BW_24: 29
+            BW_23: 213
+            BW_22: 93
+            BW_20: 157
+            BW_19: 37
+            BW_17: 101
+            BW_16: 165
+            BW_14: 86
+            BW_13: 229
+            BW_12: 30
+            BW_11: 94
+            BW_10: 158
+            BW_9_6: 38
+            BW_8_9: 102
+            BW_8_7: 222
+            BW_8_3: 166
+            BW_8: 23
+            BW_7_4: 87
+            BW_6_9: 230
+            BW_6: 31
+            BW_5_8: 215
+            BW_5_6: 95
+            BW_5_2: 159
+            BW_4_8: 39
+            BW_4_5: 103
+            BW_4_3: 223
+            BW_4_2: 167
+            BW_3_5: 231
+        - name: pkt_format_tx
+          bit_width: 1
+          byte_positions: [[4, "0"]]
+          description: "Packet format (A or B)"
+          enum:
+            FORMAT_A: 0
+            FORMAT_B: 1
+        - name: addr_filt_en
+          bit_width: 1
+          byte_positions: [[5, "0"]]
+          description: Enable address filtering
+        - name: pld_len
+          bit_width: 8
+          byte_positions: [[6, "7:0"]]
+          description: "In Tx: payload size to send (including C, M, A and CI fields, excluding CRCs). In Rx: max L-field size to accept"
+        - name: pbl_len_tx
+          bit_width: 16
+          byte_positions: [[7, "7:0"], [8, "7:0"]]
+          description: "Length of sent preamble in bits. For 4-FSK, number of symbols sent is pbl_len_tx/2"
+        - name: pbl_len_detect
+          bit_width: 8
+          byte_positions: [[9, "7:0"]]
+          description: "How many bits in the preamble to use for detection, or 0xff for auto-setting (based on pbl_len_tx)"
+
+      GetWmbusRxStats:
+        opcode: 0x026C
+        description: Get the Rx statistics for wmbus packets
+        parameters: []
+        status_fields:
+        - name: pkt_rx
+          bit_width: 16
+          byte_positions: [[2, "7:0"], [3, "7:0"]]
+          description: Total number of received packets
+        - name: crc_error
+          bit_width: 16
+          byte_positions: [[4, "7:0"], [5, "7:0"]]
+          description: Number of received packets with a CRC error
+        - name: len_error
+          bit_width: 16
+          byte_positions: [[6, "7:0"], [7, "7:0"]]
+          description: Number of packets with a length error
+        - name: pbl_det
+          bit_width: 16
+          byte_positions: [[8, "7:0"], [9, "7:0"]]
+          description: Number of detections
+          optional: true
+        - name: sync_ok
+          bit_width: 16
+          byte_positions: [[10, "7:0"], [11, "7:0"]]
+          description: Number of good found syncword
+          optional: true
+        - name: sync_fail
+          bit_width: 16
+          byte_positions: [[12, "7:0"], [13, "7:0"]]
+          description: Number of failed syncword
+          optional: true
+        - name: timeout
+          bit_width: 16
+          byte_positions: [[14, "7:0"], [15, "7:0"]]
+          description: Number of rtc timeouts
+          optional: true
+        - name: crc_ok
+          bit_width: 16
+          byte_positions: [[16, "7:0"], [17, "7:0"]]
+          description: Number of packets received with correct CRC
+          optional: true
+
+      GetWmbusPacketStatus:
+        opcode: 0x026D
+        description: Get Rx packet status informations for wmbus packets
+        parameters: []
+        status_fields:
+        - name: l_field
+          bit_width: 8
+          byte_positions: [[2, "7:0"]]
+          description: "The demodulated length field. This can be different from get_rx_packet_length (in mode A)"
+          optional: false
+        - name: pkt_len
+          bit_width: 16
+          byte_positions: [[3, "7:0"], [4, "7:0"]]
+          description: "Length of the last received packet in bytes (including optional data added in the FIFO, crc, ...)"
+          optional: false
+        - name: rssi_avg
+          bit_width: 9
+          byte_positions: [[5, "7:0"], [9, "4"]]
+          description: "Average over last packet received of RSSI. Actual signal power is –rssi_avg/2 (dBm)"
+          optional: false
+        - name: rssi_sync
+          bit_width: 9
+          byte_positions: [[6, "7:0"], [9, "0"]]
+          description: "Latch RSSI value after syncword detection. Actual signal power is –rssi_sync/2 (dBm)"
+          optional: false
+        - name: crc_err
+          bit_width: 17
+          byte_positions: [[7, "7:0"], [8, "7:0"], [9, "6"]]
+          description: "Indicates which crc has failed. In A mode, bit0 is the crc of the header, then each bit is the crc of the subsequent chunks"
+          optional: false
+        - name: syncword_idx
+          bit_width: 1
+          byte_positions: [[9, "7"]]
+          description: "Index of detected syncword (0/1)"
+          optional: false
+        - name: lqi
+          bit_width: 8
+          byte_positions: [[10, "7:0"]]
+          description: "Link quality indicator (0.25dB)"
+          optional: false
+
+      SetWmbusAddress:
+        opcode: 0x026E
+        description: Set the WM-Bus address for RX filtering (A-field)
+        parameters:
+        - name: address
+          bit_width: 48
+          byte_positions: [[2, "7:0"], [3, "7:0"], [4, "7:0"], [5, "7:0"], [6, "7:0"], [7, "7:0"]]
+          description: WM-Bus address for RX filtering (A-field), 48 bits total
