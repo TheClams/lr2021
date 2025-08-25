@@ -14,6 +14,7 @@ pub mod zwave;
 pub mod lrfhss;
 pub mod wmbus;
 pub mod wisun;
+pub mod bpsk_tx;
 
 use core::marker::PhantomData;
 

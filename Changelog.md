@@ -1,5 +1,17 @@
 # Change Log
 
+## [0.5.0] - Unreleased
+
+### Changed
+  - FSK: dc_free parameter is now a bool in set_fsk_packet
+  - ZWave: timeout now uses the recommended value based on number of channel used
+
+### Added
+  - LoRa: add methods related to ranging
+  - WM-Bus: API
+  - Wisun: API
+  - BPSK: API (TX only)
+
 ## [0.4.0] - 2025-08-23
 
 ### Changed
