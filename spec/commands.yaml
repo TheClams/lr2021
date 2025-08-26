@@ -1904,137 +1904,6 @@ categories:
             - '7:0'
           description: LoRa syncword
           optional: false
-          default: 18
-      SetLoraSideDetConfig:
-        opcode: 548
-        description: Configure the LoRa RX multi SF (side detectors) config. The multi-sf can listen to multiple SF in parallel
-          and automatically switch to RX mode to demodulate the right SF. Calling SetLoraModulationParams will disable all
-          side detectors
-        parameters:
-        - name: sd1_sf
-          bit_width: 4
-          byte_positions:
-          - - 2
-            - '7:4'
-          description: Spreading Factor of Side detector 1
-          optional: true
-          enum:
-            SF5: 5
-            SF6: 6
-            SF7: 7
-            SF8: 8
-            SF9: 9
-            SF10: 10
-            SF11: 11
-            SF12: 12
-        - name: sd1_ldro
-          bit_width: 2
-          byte_positions:
-          - - 2
-            - '3:2'
-          description: PPM Offset of Side detector 1
-          optional: true
-          enum:
-            'OFF': 0
-            'ON': 1
-        - name: sd1_inv
-          bit_width: 1
-          byte_positions:
-          - - 2
-            - '0'
-          description: IQ Invert of Side detector 1
-          optional: true
-        - name: sd2_sf
-          bit_width: 4
-          byte_positions:
-          - - 3
-            - '7:4'
-          description: Spreading Factor of Side detector 2
-          optional: true
-          enum:
-            SF5: 5
-            SF6: 6
-            SF7: 7
-            SF8: 8
-            SF9: 9
-            SF10: 10
-            SF11: 11
-            SF12: 12
-        - name: sd2_ldro
-          bit_width: 2
-          byte_positions:
-          - - 3
-            - '3:2'
-          description: PPM Offset of Side detector 2
-          optional: true
-          enum:
-            'OFF': 0
-            'ON': 1
-        - name: sd2_inv
-          bit_width: 1
-          byte_positions:
-          - - 3
-            - '0'
-          description: IQ Invert of Side detector 2
-          optional: true
-        - name: sd3_sf
-          bit_width: 4
-          byte_positions:
-          - - 4
-            - '7:4'
-          description: Spreading Factor of Side detector 3
-          optional: true
-          enum:
-            SF5: 5
-            SF6: 6
-            SF7: 7
-            SF8: 8
-            SF9: 9
-            SF10: 10
-            SF11: 11
-            SF12: 12
-        - name: sd3_ldro
-          bit_width: 2
-          byte_positions:
-          - - 4
-            - '3:2'
-          description: PPM Offset of Side detector 3
-          optional: true
-          enum:
-            'OFF': 0
-            'ON': 1
-        - name: sd3_inv
-          bit_width: 1
-          byte_positions:
-          - - 4
-            - '0'
-          description: IQ Invert of Side detector 3
-          optional: true
-      SetLoraSideDetSyncword:
-        opcode: 549
-        description: Configure the LoRa RX multi SF (side detectors) syncwords
-        parameters:
-        - name: sd1_sw
-          bit_width: 8
-          byte_positions:
-          - - 2
-            - '7:0'
-          description: Syncword for side detector 1
-          optional: true
-        - name: sd2_sw
-          bit_width: 8
-          byte_positions:
-          - - 3
-            - '7:0'
-          description: Syncword for side detector 2
-          optional: true
-        - name: sd3_sw
-          bit_width: 8
-          byte_positions:
-          - - 4
-            - '7:0'
-          description: Syncword for side detector 3
-          optional: true
       ConfigLoraPreambleModulation:
         opcode: 550
         description: Configures the LoRa phase modulation demodulation during preamble feature. If enabled, for TX the preamble
@@ -2306,14 +2175,24 @@ categories:
         opcode: 555
         description: Sets the address for LoRa RX address filtering
         parameters:
-        - name: addr_comp_len
+        - name: addr_len
           bit_width: 4
           byte_positions:
           - - 2
             - '7:4'
           description: Number of bytes (0..8) used in address filtering. 0=no address filtering
           optional: false
-        - name: addr_comp_pos
+          enum:
+            ADDR_NONE: 0
+            ADDR_1_B: 1
+            ADDR_2_B: 2
+            ADDR_3_B: 3
+            ADDR_4_B: 4
+            ADDR_5_B: 5
+            ADDR_6_B: 6
+            ADDR_7_B: 7
+            ADDR_8_B: 8
+        - name: addr_pos
           bit_width: 4
           byte_positions:
           - - 2
@@ -2435,7 +2314,7 @@ categories:
         opcode: 541
         description: Configures the LoRa Tx synchronization using dio
         parameters:
-        - name: function
+        - name: timing_sync_mode
           bit_width: 2
           byte_positions:
           - - 2
@@ -2444,8 +2323,8 @@ categories:
           optional: false
           enum:
             DISABLED: 0
-            MASTER: 1
-            SLAVE: 2
+            INITIATOR: 1
+            RESPONDER: 2
         - name: dio_num
           bit_width: 4
           byte_positions:
@@ -3086,9 +2965,9 @@ categories:
     commands:
       SetRangingAddr:
         opcode: 632
-        description: Sets the ranging Id for this device (used in the slaves)
+        description: Sets the ranging Id for this device (used by the responder)
         parameters:
-        - name: slave_addr
+        - name: addr
           bit_width: 32
           byte_positions:
           - - 2
@@ -3108,7 +2987,7 @@ categories:
           - - 6
             - '2:0'
           description: Defines how many of the 4 bytes of the address are checked against the request address sent by the
-            master. Checked bytes are the LSB if check_length<4
+            initiator. Checked bytes are the LSB if check_length<4
           enum:
             ADDR_8B: 1
             ADDR_16B: 2
@@ -3117,7 +2996,7 @@ categories:
 
       SetRangingReqAddr:
         opcode: 633
-        description: Sets the ranging Id for the requests (used in the master)
+        description: Sets the ranging Id for the requests (used by the initiator)
         parameters:
         - name: req_addr
           bit_width: 32
@@ -3161,6 +3040,7 @@ categories:
           - - 4
             - '7:0'
           description: Ranging measurement value. Distance in meter is given by rng*150/(2^12*Bandwidth),
+          signed: true
           optional: false
         - name: rssi
           bit_width: 8
@@ -3183,6 +3063,7 @@ categories:
           - - 4
             - '7:0'
           description: First ranging measurement value
+          signed: true
           optional: false
         - name: rssi1
           bit_width: 8
@@ -3201,6 +3082,7 @@ categories:
           - - 8
             - '7:0'
           description: Second ranging measurement value
+          signed: true
           optional: false
         - name: rssi2
           bit_width: 8
@@ -3260,9 +3142,9 @@ categories:
           byte_positions:
           - - 2
             - '6'
-          description: 'EEnable spy mode on the next set_rx. In SPY mode, the radio acts like
-            a normal device in slave mode and will send a response to any request for its address,
-            but will also listen to requests/responses pairs not addressed to it'
+          description: 'Enable spy mode on the next set_rx. In this mode, the radio acts like
+            a normal device in responder mode and will send a response to any request for its address,
+            but will also listen to requests/responses pairs not addressed to it to measure time-of-flight between those two devices'
           optional: false
         - name: nb_symbols
           bit_width: 6
@@ -3312,7 +3194,7 @@ categories:
             - '7:0'
           - - 9
             - '7:0'
-          description: 'Number of timeouts (For Manager role: no response received from slave; For Subordinate role: no extended
+          description: 'Number of timeouts (For Initiator role: no response received from responder; For Responder role: no extended
             request received in extended mode)'
           optional: false
         - name: request_discarded

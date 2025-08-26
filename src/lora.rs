@@ -9,6 +9,62 @@ use super::{
     BusyPin, Lr2021, Lr2021Error
 };
 
+#[derive(Debug, Clone, Copy)]
+pub struct SidedetCfg(u8);
+impl SidedetCfg {
+    pub fn new(sf: Sf, ldro: Ldro, inv: bool) -> Self{
+        let b = ((sf as u8) << 4) |
+            (ldro as u8) << 2 |
+            if inv {1} else {0};
+        Self(b)
+    }
+
+    pub fn to_byte(&self) -> u8 {
+        self.0
+    }
+}
+
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
+/// Flag status of last exchange
+pub enum RangingStatus {
+    Invalid = 0, Standard = 1, Extended = 3
+}
+
+impl RangingStatus {
+    pub fn is_valid(&self) -> bool {
+        *self!=RangingStatus::Invalid
+    }
+}
+
+impl From<u8> for RangingStatus {
+    fn from(value: u8) -> Self {
+        match value & 3 {
+            1 => RangingStatus::Standard,
+            3 => RangingStatus::Extended,
+            _ => RangingStatus::Invalid,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
+/// Frequency estimation during ranging exchange (valid only on responder side)
+pub struct RangingFei {
+    /// Frequency estimation on first exchange
+    pub fei1: i32,
+    /// Frequency estimation on second exchange
+    pub fei2: i32,
+}
+
+
+#[derive(Debug, Clone, Copy)]
+/// Define duration of the TimingSync pulse of the responder
+pub enum TimingSyncPulseWidth {
+    W1 = 0, W5 = 1, W52 = 2, W520 = 3, W5200 = 4, W52k = 5, W260k = 6, W1024k = 7
+}
+
 impl<O,SPI, M> Lr2021<O,SPI, M> where
     O: OutputPin, SPI: SpiBus<u8>, M: BusyPin
 {
@@ -36,6 +92,22 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     pub async fn set_lora_syncword_ext(&mut self, s1: u8, s2: u8) -> Result<(), Lr2021Error> {
         let req = set_lora_syncword_extended_cmd(s1, s2);
         self.cmd_wr(&req).await
+    }
+
+    /// Set synchronisation timeout
+    /// Timeout is given in number of symbol: either the direct value or with mantissa/exponent (like SX126x)
+    pub async fn set_lora_synch_timeout(&mut self, timeout: u8, format: TimeoutFormat) -> Result<(), Lr2021Error> {
+        let req = set_lora_synch_timeout_cmd(timeout, format);
+        self.cmd_wr(&req).await
+    }
+
+    /// Set address for address filtering
+    /// Length is the address length in number of byte 0 (no address filtering, default) up to 8
+    /// Pos is the first byte in the payload the address appears
+    pub async fn set_lora_address(&mut self, len: AddrLen, pos: u8, addr: u64) -> Result<(), Lr2021Error> {
+        let req = set_lora_address_cmd(len, pos, addr);
+        let len = 2 + (len as usize);
+        self.cmd_wr(&req[..len]).await
     }
 
     /// Return Information about last packet received
@@ -96,6 +168,39 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
         Ok(())
     }
 
+    /// Configure Side-Detector allowing multiple SF to be detected
+    /// Must be called after set_lora_modulation
+    /// If cfg is an empty slice, this disabled all side-detector
+    pub async fn set_lora_sidedet_cfg(&mut self, cfg: &[SidedetCfg]) -> Result<(), Lr2021Error> {
+        let req = [
+            0x02, 0x24,
+            cfg.get(0).map(|c| c.to_byte()).unwrap_or(0),
+            cfg.get(1).map(|c| c.to_byte()).unwrap_or(0),
+            cfg.get(2).map(|c| c.to_byte()).unwrap_or(0),
+        ];
+        let len = cfg.len() + 2;
+        self.cmd_wr(&req[..len]).await
+    }
+
+    /// Configure Side-Detector Syncword using basic syncword format
+    pub async fn set_lora_sidedet_syncword(&mut self, sw: &[u8]) -> Result<(), Lr2021Error> {
+        let req = [
+            0x02, 0x25,
+            sw.get(0).copied().unwrap_or(0x24),
+            sw.get(1).copied().unwrap_or(0x24),
+            sw.get(2).copied().unwrap_or(0x24),
+        ];
+        let len = sw.len() + 2;
+        self.cmd_wr(&req[..len]).await
+    }
+
+    /// Long preamble can be modulated in phase in order to provide information about how many symbols are left
+    /// This allows a receiver to go back to sleep if beginning of the frame starts in a long time
+    pub async fn set_lora_preamble_modulation(&mut self, en: bool, dram_ret: u8, wakeup_time: u16, min_sleep_time: u32) -> Result<(), Lr2021Error> {
+        let req = config_lora_preamble_modulation_cmd(en, dram_ret, wakeup_time, min_sleep_time);
+        self.cmd_wr(&req).await
+    }
+
     /// Set the device address for ranging operation
     /// The device will answer to ranging request only if the request address matches the device address
     /// The length allows to define how many bytes from the address are checked (starting from LSB)
@@ -124,6 +229,12 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
          let req = set_ranging_params_cmd(extended, spy_mode, nb_symbols);
         self.cmd_wr(&req).await
    }
+
+    /// Return info if last ranging exchange was valid
+    pub async fn get_ranging_status(&mut self) -> Result<RangingStatus, Lr2021Error> {
+        let val = (self.rd_reg(0xF30B74).await? >> 5) as u8;
+        Ok(val.into())
+    }
 
     /// Return the result of last ranging exchange (round-trip time of flight and RSSI)
     /// The distance is provided
@@ -158,6 +269,20 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
         let mut rsp = RangingStatsRsp::new();
         self.cmd_rd(&req, rsp.as_mut()).await?;
         Ok(rsp)
+    }
+
+    /// Set Lora in Timing Synchronisation mode
+    /// The initiator sends a special frame when the dio is asserted
+    /// The responder is in reception mode and will assert the DIO a known delay after reception of the TimingSync packet
+    pub async fn set_lora_timing_sync(&mut self, mode: TimingSyncMode, dio_num: u8) -> Result<(), Lr2021Error> {
+        let req = set_lora_tx_sync_cmd(mode, dio_num);
+        self.cmd_wr(&req).await
+    }
+
+    /// Configure the LoRa TimingSync Pulse for the initiator (delay and width)
+    pub async fn set_lora_timing_sync_pulse(&mut self, delay: u32, width: TimingSyncPulseWidth) -> Result<(), Lr2021Error> {
+        let value = ((width as u32) << 29) | (delay & 0x7FF_FFFF) | 0x0800_0000;
+        self.wr_reg(0xF30B64, value).await
     }
 
 }

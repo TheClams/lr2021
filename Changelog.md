@@ -7,7 +7,7 @@
   - ZWave: timeout now uses the recommended value based on number of channel used
 
 ### Added
-  - LoRa: add methods related to ranging
+  - LoRa: add methods related to ranging, timing synch, preamble modulation
   - WM-Bus: API
   - Wisun: API
   - BPSK: API (TX only)

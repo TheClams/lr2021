@@ -87,13 +87,28 @@ pub enum ExitMode {
     CadLbt = 16,
 }
 
+/// Number of bytes (0..8) used in address filtering. 0=no address filtering
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
+pub enum AddrLen {
+    AddrNone = 0,
+    Addr1B = 1,
+    Addr2B = 2,
+    Addr3B = 3,
+    Addr4B = 4,
+    Addr5B = 5,
+    Addr6B = 6,
+    Addr7B = 7,
+    Addr8B = 8,
+}
+
 /// TX Sync function
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
-pub enum Function {
+pub enum TimingSyncMode {
     Disabled = 0,
-    Master = 1,
-    Slave = 2,
+    Initiator = 1,
+    Responder = 2,
 }
 
 /// Sets the LoRa modulation parameters. FW configures respective modem registers. Will return CMD_FAIL in the status of the next command, if the packet type is not LoRa
@@ -142,46 +157,6 @@ pub fn set_lora_syncword_cmd(syncword: u8) -> [u8; 3] {
     cmd[1] = 0x23;
 
     cmd[2] |= syncword;
-    cmd
-}
-
-/// Configure the LoRa RX multi SF (side detectors) config. The multi-sf can listen to multiple SF in parallel and automatically switch to RX mode to demodulate the right SF. Calling SetLoraModulationParams will disable all side detectors
-pub fn set_lora_side_det_config_cmd() -> [u8; 2] {
-    [0x02, 0x24]
-}
-
-/// Configure the LoRa RX multi SF (side detectors) config. The multi-sf can listen to multiple SF in parallel and automatically switch to RX mode to demodulate the right SF. Calling SetLoraModulationParams will disable all side detectors
-pub fn set_lora_side_det_config_adv_cmd(sd1_sf: Sf, sd1_ldro: Ldro, sd1_inv: bool, sd2_sf: Sf, sd2_ldro: Ldro, sd2_inv: bool, sd3_sf: Sf, sd3_ldro: Ldro, sd3_inv: bool) -> [u8; 5] {
-    let mut cmd = [0u8; 5];
-    cmd[0] = 0x02;
-    cmd[1] = 0x24;
-
-    cmd[2] |= ((sd1_sf as u8) & 0xF) << 4;
-    cmd[2] |= ((sd1_ldro as u8) & 0x3) << 2;
-    if sd1_inv { cmd[2] |= 1; }
-    cmd[3] |= ((sd2_sf as u8) & 0xF) << 4;
-    cmd[3] |= ((sd2_ldro as u8) & 0x3) << 2;
-    if sd2_inv { cmd[3] |= 1; }
-    cmd[4] |= ((sd3_sf as u8) & 0xF) << 4;
-    cmd[4] |= ((sd3_ldro as u8) & 0x3) << 2;
-    if sd3_inv { cmd[4] |= 1; }
-    cmd
-}
-
-/// Configure the LoRa RX multi SF (side detectors) syncwords
-pub fn set_lora_side_det_syncword_cmd() -> [u8; 2] {
-    [0x02, 0x25]
-}
-
-/// Configure the LoRa RX multi SF (side detectors) syncwords
-pub fn set_lora_side_det_syncword_adv_cmd(sd1_sw: u8, sd2_sw: u8, sd3_sw: u8) -> [u8; 5] {
-    let mut cmd = [0u8; 5];
-    cmd[0] = 0x02;
-    cmd[1] = 0x25;
-
-    cmd[2] |= sd1_sw;
-    cmd[3] |= sd2_sw;
-    cmd[4] |= sd3_sw;
     cmd
 }
 
@@ -255,21 +230,21 @@ pub fn get_lora_packet_status_req() -> [u8; 2] {
 }
 
 /// Sets the address for LoRa RX address filtering
-pub fn set_lora_address_cmd(addr_comp_len: u8, addr_comp_pos: u8, addr: u64) -> [u8; 11] {
+pub fn set_lora_address_cmd(addr_len: AddrLen, addr_pos: u8, addr: u64) -> [u8; 11] {
     let mut cmd = [0u8; 11];
     cmd[0] = 0x02;
     cmd[1] = 0x2B;
 
-    cmd[2] |= (addr_comp_len & 0xF) << 4;
-    cmd[2] |= addr_comp_pos & 0xF;
-    cmd[3] |= ((addr >> 56) & 0xFF) as u8;
-    cmd[4] |= ((addr >> 48) & 0xFF) as u8;
-    cmd[5] |= ((addr >> 40) & 0xFF) as u8;
-    cmd[6] |= ((addr >> 32) & 0xFF) as u8;
-    cmd[7] |= ((addr >> 24) & 0xFF) as u8;
-    cmd[8] |= ((addr >> 16) & 0xFF) as u8;
-    cmd[9] |= ((addr >> 8) & 0xFF) as u8;
-    cmd[10] |= (addr & 0xFF) as u8;
+    cmd[2] |= ((addr_len as u8) & 0xF) << 4;
+    cmd[2] |= addr_pos & 0xF;
+    cmd[3] |= (addr & 0xFF) as u8;
+    cmd[4] |= ((addr >> 8) & 0xFF) as u8;
+    cmd[5] |= ((addr >> 16) & 0xFF) as u8;
+    cmd[6] |= ((addr >> 24) & 0xFF) as u8;
+    cmd[7] |= ((addr >> 32) & 0xFF) as u8;
+    cmd[8] |= ((addr >> 40) & 0xFF) as u8;
+    cmd[9] |= ((addr >> 48) & 0xFF) as u8;
+    cmd[10] |= ((addr >> 56) & 0xFF) as u8;
     cmd
 }
 
@@ -300,12 +275,12 @@ pub fn set_lora_side_det_syncword_extended_cmd(sd1_sw1: u8, sd1_sw2: u8, sd2_sw1
 }
 
 /// Configures the LoRa Tx synchronization using dio
-pub fn set_lora_tx_sync_cmd(function: Function, dio_num: u8) -> [u8; 3] {
+pub fn set_lora_tx_sync_cmd(timing_sync_mode: TimingSyncMode, dio_num: u8) -> [u8; 3] {
     let mut cmd = [0u8; 3];
     cmd[0] = 0x02;
     cmd[1] = 0x1D;
 
-    cmd[2] |= ((function as u8) & 0x3) << 6;
+    cmd[2] |= ((timing_sync_mode as u8) & 0x3) << 6;
     cmd[2] |= dio_num & 0xF;
     cmd
 }

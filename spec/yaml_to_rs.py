@@ -60,6 +60,7 @@ class Field:
     signed: bool
     byte_positions: list[BytePosition]
     description: str
+    little_endian: bool = False
     optional: bool = False
     enum: dict[str, int] | None = None
 
@@ -113,9 +114,10 @@ def parse_field(field_data: dict[str, Any], context: str) -> Field:  # pyright: 
         signed : bool = field_data.get('signed', False)
         description : str = field_data.get('description', '')
         optional : bool = field_data.get('optional', False)
-        enum = field_data.get('enum')
+        enum: dict[str, int] | None = field_data.get('enum', None)
+        le : bool = field_data.get('le', False)
         
-        field = Field(name, bit_width, signed, byte_positions, description, optional, enum)
+        field = Field(name, bit_width, signed, byte_positions, description, le, optional, enum)
         validate_field(field, f"{context}.{name}")
         return field
         
@@ -273,7 +275,10 @@ def gen_req(cmd: Command, _category: str, advanced: bool = False) -> str:
                 elif param.name == 'temp_format':
                     lines.append(f"    cmd[2] |= 8; // Force format to Celsius")
                 else:
-                    shift_right = param.bit_width - sum((p_msb - p_lsb + 1) for p_pos in param.byte_positions[:param.byte_positions.index(pos)+1] for p_msb, p_lsb in [p_pos.get_bit_range_tuple()])
+                    if param.little_endian:
+                        shift_right = sum((p_msb - p_lsb + 1) for p_pos in param.byte_positions[:param.byte_positions.index(pos)] for p_msb, p_lsb in [p_pos.get_bit_range_tuple()])
+                    else :
+                        shift_right = param.bit_width - sum((p_msb - p_lsb + 1) for p_pos in param.byte_positions[:param.byte_positions.index(pos)+1] for p_msb, p_lsb in [p_pos.get_bit_range_tuple()])
                     l = f"    cmd[{pos.byte_index}] |= "
                     if need_cast_u8:  l += '(';
                     if lsb!= 0: l += '(';

@@ -2,7 +2,7 @@
 
 use crate::status::Status;
 
-/// Defines how many of the 4 bytes of the address are checked against the request address sent by the master. Checked bytes are the LSB if check_length<4
+/// Defines how many of the 4 bytes of the address are checked against the request address sent by the initiator. Checked bytes are the LSB if check_length<4
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum CheckLength {
@@ -21,21 +21,21 @@ pub enum RangingResKind {
     GainSteps = 2,
 }
 
-/// Sets the ranging Id for this device (used in the slaves)
-pub fn set_ranging_addr_cmd(slave_addr: u32, check_length: CheckLength) -> [u8; 7] {
+/// Sets the ranging Id for this device (used by the responder)
+pub fn set_ranging_addr_cmd(addr: u32, check_length: CheckLength) -> [u8; 7] {
     let mut cmd = [0u8; 7];
     cmd[0] = 0x02;
     cmd[1] = 0x78;
 
-    cmd[2] |= ((slave_addr >> 24) & 0xFF) as u8;
-    cmd[3] |= ((slave_addr >> 16) & 0xFF) as u8;
-    cmd[4] |= ((slave_addr >> 8) & 0xFF) as u8;
-    cmd[5] |= (slave_addr & 0xFF) as u8;
+    cmd[2] |= ((addr >> 24) & 0xFF) as u8;
+    cmd[3] |= ((addr >> 16) & 0xFF) as u8;
+    cmd[4] |= ((addr >> 8) & 0xFF) as u8;
+    cmd[5] |= (addr & 0xFF) as u8;
     cmd[6] |= (check_length as u8) & 0x7;
     cmd
 }
 
-/// Sets the ranging Id for the requests (used in the master)
+/// Sets the ranging Id for the requests (used by the initiator)
 pub fn set_ranging_req_addr_cmd(req_addr: u32) -> [u8; 6] {
     let mut cmd = [0u8; 6];
     cmd[0] = 0x02;
@@ -110,10 +110,11 @@ impl RangingResultRsp {
     }
 
     /// Ranging measurement value. Distance in meter is given by rng*150/(2^12*Bandwidth),
-    pub fn rng(&self) -> u32 {
-        (self.0[4] as u32) |
-        ((self.0[3] as u32) << 8) |
-        ((self.0[2] as u32) << 16)
+    pub fn rng(&self) -> i32 {
+        let raw = (self.0[4] as u32) |
+            ((self.0[3] as u32) << 8) |
+            ((self.0[2] as u32) << 16);
+        raw as i32 - if (self.0[2] & 0x80) != 0 {1<<24} else {0}
     }
 
     /// RSSI value
@@ -144,10 +145,11 @@ impl RangingExtResultRsp {
     }
 
     /// First ranging measurement value
-    pub fn rng1(&self) -> u32 {
-        (self.0[4] as u32) |
-        ((self.0[3] as u32) << 8) |
-        ((self.0[2] as u32) << 16)
+    pub fn rng1(&self) -> i32 {
+        let raw = (self.0[4] as u32) |
+            ((self.0[3] as u32) << 8) |
+            ((self.0[2] as u32) << 16);
+        raw as i32 - if (self.0[2] & 0x80) != 0 {1<<24} else {0}
     }
 
     /// RSSI value for first ranging measurement
@@ -156,10 +158,11 @@ impl RangingExtResultRsp {
     }
 
     /// Second ranging measurement value
-    pub fn rng2(&self) -> u32 {
-        (self.0[8] as u32) |
-        ((self.0[7] as u32) << 8) |
-        ((self.0[6] as u32) << 16)
+    pub fn rng2(&self) -> i32 {
+        let raw = (self.0[8] as u32) |
+            ((self.0[7] as u32) << 8) |
+            ((self.0[6] as u32) << 16);
+        raw as i32 - if (self.0[6] & 0x80) != 0 {1<<24} else {0}
     }
 
     /// RSSI value for second ranging measurement
@@ -239,7 +242,7 @@ impl RangingStatsRsp {
         ((self.0[6] as u16) << 8)
     }
 
-    /// Number of timeouts (For Manager role: no response received from slave; For Subordinate role: no extended request received in extended mode)
+    /// Number of timeouts (For Initiator role: no response received from responder; For Responder role: no extended request received in extended mode)
     pub fn timeout(&self) -> u16 {
         (self.0[9] as u16) |
         ((self.0[8] as u16) << 8)

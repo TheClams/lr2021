@@ -2,7 +2,7 @@
 
 ## General setup
 
---
+---
 ## Radio protocols
 
 ### LoRa
@@ -38,7 +38,7 @@ Semtech proprietary protocol using ultra-narrow-band modulation with frequency h
 ### BPSK
 Sigfox up-link modulation, TX only.
 
---
+---
 ## Examples
 A few simple applications using this driver are available
 in the Github repository [lr2021-apps](https://github.com/TheClams/lr2021-apps)
