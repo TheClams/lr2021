@@ -16,9 +16,49 @@ pub struct ZwavePacketParams {
     pub fcs_mode: FcsMode,
 }
 
+#[derive(Debug, Clone, Copy)]
+pub enum ZwavePpduKind {
+    SingleCast, MultiCast, Beam
+}
+
 impl ZwavePacketParams {
     pub fn new(mode: ZwaveMode, rx_bw: RxBw, addr_comp: ZwaveAddrComp, pld_len: u8, pbl_len_tx: u16, pbl_len_detect: u8, fcs_mode: FcsMode) -> Self {
         Self {mode, rx_bw, addr_comp, pld_len, pbl_len_tx, pbl_len_detect, fcs_mode}
+    }
+
+    pub fn from_mode(mode: ZwaveMode, kind: ZwavePpduKind, pld_len: u8) -> Self {
+        let fcs_mode = if mode==ZwaveMode::Lr1 {FcsMode::Fifo} else {FcsMode::Auto};
+        let pbl_len_tx = match (kind, mode) {
+            (ZwavePpduKind::Beam      , ZwaveMode::Lr1) => 2,
+            (_                        , ZwaveMode::Lr1) => 10,
+            (ZwavePpduKind::SingleCast, _             ) => 10,
+            (ZwavePpduKind::MultiCast , ZwaveMode::R1 ) => 10,
+            (ZwavePpduKind::MultiCast , ZwaveMode::R2 ) => 20,
+            (ZwavePpduKind::MultiCast , ZwaveMode::R3 ) => 24,
+            (ZwavePpduKind::Beam      , ZwaveMode::R3 ) => 8,
+            (ZwavePpduKind::Beam      , _             ) => 20,
+        } * 8; // Multiply by 8 to get the number of bits instead of byte as defined in standard
+        Self {
+            mode,
+            rx_bw: RxBw::BwAuto,
+            addr_comp: ZwaveAddrComp::Off,
+            pld_len,
+            pbl_len_tx,
+            pbl_len_detect:32,
+            fcs_mode
+        }
+    }
+
+    pub fn with_filt(self, beam_en: bool) -> Self {
+        Self {
+            mode: self.mode,
+            rx_bw: self.rx_bw,
+            addr_comp: if beam_en {ZwaveAddrComp::HomeidBeam} else {ZwaveAddrComp::HomeidBeam},
+            pld_len: self.pld_len,
+            pbl_len_tx: self.pbl_len_tx,
+            pbl_len_detect: self.pbl_len_detect,
+            fcs_mode: self.fcs_mode,
+        }
     }
 }
 
@@ -46,20 +86,22 @@ impl ZwaveChanCfg {
         }
     }
     /// Create a channel configuration for R2
-    pub fn r2(freq: u32) -> Self {
+    /// Fast flag is used when scanning 4 channel
+    pub fn r2(freq: u32, fast: bool) -> Self {
         Self {
             freq,
             mode: ZwaveMode::R2,
-            timeout: 30,
+            timeout: if fast {30} else {34},
             cca_en: false,
         }
     }
     /// Create a channel configuration for R3
-    pub fn r3(freq: u32) -> Self {
+    /// Fast flag is used when scanning 4 channel
+    pub fn r3(freq: u32, fast: bool) -> Self {
         Self {
             freq,
             mode: ZwaveMode::R3,
-            timeout: 7,
+            timeout: if fast {7} else {8},
             cca_en: false,
         }
     }
@@ -90,7 +132,7 @@ pub enum ZwaveRfRegion {Anz, Cn, Eu, EuLr1, EuLr2, Hk, Il, In, Jp, Kr, Ru, Us, U
 
 impl ZwaveScanCfg {
 
-    /// Create the scan configuration correpsonding to an official region
+    /// Create the scan configuration corresponding to an official region
     pub fn from_region(addr_comp: ZwaveAddrComp, fcs_mode: FcsMode, region: ZwaveRfRegion) -> Self {
         match region {
             // Base Region
@@ -117,8 +159,8 @@ impl ZwaveScanCfg {
     pub fn base_rate(addr_comp: ZwaveAddrComp, fcs_mode: FcsMode, rf_r1: u32, rf_r2: u32, rf_r3: u32) -> Self {
         Self {addr_comp, fcs_mode, nb_ch: 3,
             ch1: ZwaveChanCfg::r1(rf_r1),
-            ch2: ZwaveChanCfg::r2(rf_r2),
-            ch3: ZwaveChanCfg::r3(rf_r3),
+            ch2: ZwaveChanCfg::r2(rf_r2, false),
+            ch3: ZwaveChanCfg::r3(rf_r3, false),
             ch4: ZwaveChanCfg::lr1(912_000_000),
         }
     }
@@ -127,8 +169,8 @@ impl ZwaveScanCfg {
     pub fn all_rate(addr_comp: ZwaveAddrComp, fcs_mode: FcsMode, rf_r1: u32, rf_r2: u32, rf_r3: u32, rf_lr1: u32) -> Self {
         Self {addr_comp, fcs_mode, nb_ch: 4,
             ch1: ZwaveChanCfg::r1(rf_r1),
-            ch2: ZwaveChanCfg::r2(rf_r2),
-            ch3: ZwaveChanCfg::r3(rf_r3),
+            ch2: ZwaveChanCfg::r2(rf_r2, true),
+            ch3: ZwaveChanCfg::r3(rf_r3, true),
             ch4: ZwaveChanCfg::lr1(rf_lr1),
         }
     }
@@ -136,9 +178,9 @@ impl ZwaveScanCfg {
     /// Create scanning for all rate including LR
     pub fn all_r3(addr_comp: ZwaveAddrComp, fcs_mode: FcsMode, rf_r1: u32, rf_r2: u32, rf_r3: u32) -> Self {
         Self {addr_comp, fcs_mode, nb_ch: 3,
-            ch1: ZwaveChanCfg::r3(rf_r1),
-            ch2: ZwaveChanCfg::r3(rf_r2),
-            ch3: ZwaveChanCfg::r3(rf_r3),
+            ch1: ZwaveChanCfg::r3(rf_r1, false),
+            ch2: ZwaveChanCfg::r3(rf_r2, false),
+            ch3: ZwaveChanCfg::r3(rf_r3, false),
             ch4: ZwaveChanCfg::lr1(912_000_000),
         }
     }
@@ -146,9 +188,9 @@ impl ZwaveScanCfg {
     /// Scan only the two LR channel
     pub fn lr_only(addr_comp: ZwaveAddrComp, fcs_mode: FcsMode, is_us: bool) -> Self {
         if is_us {
-            Self {addr_comp, fcs_mode, nb_ch: 2, ch1:ZwaveChanCfg::lr1(912_000_000), ch2: ZwaveChanCfg::lr1(920_000_000), ch3: ZwaveChanCfg::r3(919_800_000), ch4: ZwaveChanCfg::r3(919_800_000)}
+            Self {addr_comp, fcs_mode, nb_ch: 2, ch1:ZwaveChanCfg::lr1(912_000_000), ch2: ZwaveChanCfg::lr1(920_000_000), ch3: ZwaveChanCfg::lr1(919_800_000), ch4: ZwaveChanCfg::lr1(919_800_000)}
         } else {
-            Self {addr_comp, fcs_mode, nb_ch: 2, ch1:ZwaveChanCfg::lr1(864_400_000), ch2: ZwaveChanCfg::lr1(866_400_000), ch3: ZwaveChanCfg::r3(919_800_000), ch4: ZwaveChanCfg::r3(919_800_000)}
+            Self {addr_comp, fcs_mode, nb_ch: 2, ch1:ZwaveChanCfg::lr1(864_400_000), ch2: ZwaveChanCfg::lr1(866_400_000), ch3: ZwaveChanCfg::lr1(919_800_000), ch4: ZwaveChanCfg::lr1(919_800_000)}
         }
     }
 
@@ -239,9 +281,9 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
         self.cmd_wr(&req[..len]).await
     }
 
-    /// Start the ZWave Scan: it will alternate between all up to 4 channels to find an incoming packet
-    pub async fn start_zwave_scan(&mut self, beam_tag: u8, addr_len: AddrLen, node_id: u16, id_hash: u8) -> Result<(), Lr2021Error> {
-        let req = set_zwave_beam_filtering_cmd(beam_tag, addr_len, node_id, id_hash);
+    /// Start the ZWave Scan: it will alternate between up to 4 channels to find an incoming packet
+    pub async fn start_zwave_scan(&mut self) -> Result<(), Lr2021Error> {
+        let req = set_zwave_scan_cmd();
         self.cmd_wr(&req).await
     }
 
