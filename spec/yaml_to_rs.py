@@ -241,8 +241,11 @@ def gen_req(cmd: Command, _category: str, advanced: bool = False) -> str:
     
     # Calculate buffer size
     buffer_size = size_of(params)
-    
-    lines = [f"/// {cmd.description}"]
+
+    lines : list[str] = []
+    if len(params) > 7:
+        lines.append('#[allow(clippy::too_many_arguments)]')
+    lines.append(f"/// {cmd.description}")
     if param_list:
         lines.append(f"pub fn {func_name}({', '.join(param_list)}) -> [u8; {buffer_size}] {{")
     else:
@@ -434,6 +437,16 @@ def gen_rsp(cmd: Command, _category: str, advanced: bool = False) -> str:
         
         lines.append("    }")
     
+    if cmd.name == 'GetErrors':
+        lines.append("    /// 32 bits values")
+        lines.append("    pub fn value(&self) -> u32 {")
+        lines.append("        u32::from_be_bytes(self.0)")
+        lines.append("    }\n")
+        lines.append("    /// Flag when no error are present")
+        lines.append("    pub fn none(&self) -> bool {")
+        lines.append("        self.0[0] == 0 && self.0[1] == 0 && self.0[2] == 0 && self.0[3] == 0")
+        lines.append("    }")
+
     lines.append("}")
     lines.append("")
     lines.append(f"impl AsMut<[u8]> for {struct_name} {{")
@@ -456,8 +469,31 @@ def gen_rsp(cmd: Command, _category: str, advanced: bool = False) -> str:
         lines.append("        defmt::write!(fmt, \"{:02x}.{:02x}\", self.major(), self.minor());")
         lines.append("    }")
         lines.append("}")
-
-
+    elif cmd.name == 'GetErrors':
+        lines.append("#[cfg(feature = \"defmt\")]")
+        lines.append("impl defmt::Format for ErrorsRsp {")
+        lines.append("    fn format(&self, f: defmt::Formatter) {")
+        lines.append("        defmt::write!(f, \"Errors: \");")
+        lines.append("        if self.none() {")
+        lines.append("            defmt::write!(f, \"None\");")
+        lines.append("            return;")
+        lines.append("        }")
+        lines.append("        if self.hf_xosc_start()       {defmt::write!(f, \"HfXoscStart \")};")
+        lines.append("        if self.lf_xosc_start()       {defmt::write!(f, \"LfXoscStart \")};")
+        lines.append("        if self.pll_lock()            {defmt::write!(f, \"PllLock \")};")
+        lines.append("        if self.lf_rc_calib()         {defmt::write!(f, \"LfRcCalib \")};")
+        lines.append("        if self.hf_rc_calib()         {defmt::write!(f, \"HfRcCalib \")};")
+        lines.append("        if self.pll_calib()           {defmt::write!(f, \"PllCalib \")};")
+        lines.append("        if self.aaf_calib()           {defmt::write!(f, \"AafCalib \")};")
+        lines.append("        if self.img_calib()           {defmt::write!(f, \"ImgCalib \")};")
+        lines.append("        if self.chip_busy()           {defmt::write!(f, \"ChipBusy \")};")
+        lines.append("        if self.rxfreq_no_fe_cal()    {defmt::write!(f, \"RxfreqNoFeCal \")};")
+        lines.append("        if self.meas_unit_adc_calib() {defmt::write!(f, \"MeasUnitAdcCalib \")};")
+        lines.append("        if self.pa_offset_calib()     {defmt::write!(f, \"PaOffsetCalib \")};")
+        lines.append("        if self.ppf_calib()           {defmt::write!(f, \"PpfCalib \")};")
+        lines.append("        if self.src_calib()           {defmt::write!(f, \"SrcCalib \")};")
+        lines.append("    }")
+        lines.append("}")
     
     return '\n'.join(lines)
 

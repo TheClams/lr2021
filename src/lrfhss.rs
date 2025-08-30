@@ -16,6 +16,8 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     O: OutputPin, SPI: SpiBus<u8>, M: BusyPin
 {
 
+    // TODO: add dedicated struct and find a good default set of values (maybe 2-3 builder method)
+    #[allow(clippy::too_many_arguments)]
     /// Prepare the LR-FHSS packet
     pub async fn lrfhss_build_packet(&mut self, sync_header_cnt: u8, cr: LrfhssCr, grid: Grid, hopping: Hopping, bw: u8, sequence: u16, offset: i8, pld: &[u8]) -> Result<(), Lr2021Error> {
         let req = lr_fhss_build_frame_cmd(sync_header_cnt, cr, grid, hopping, bw, sequence, offset);

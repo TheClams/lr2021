@@ -24,6 +24,10 @@ Semtech proprietary protocol (G)MSK modulation with high sensitivity.
 
 *Status:* Tested between two LR2021
 
+### ZWave
+
+*Status:* Tested in scan mode against a ZStick S2 with basic communication established, amd receiving all standard mode (R1 to R3)
+
 ### WiSUN (Wireless Smart Utility Network)
 
 ### WMBus (Wireless MBus)

@@ -70,6 +70,7 @@ pub fn set_wisun_mode_cmd(wisun_mode: WisunMode, rx_bw: RxBw) -> [u8; 4] {
     cmd
 }
 
+#[allow(clippy::too_many_arguments)]
 /// Configure the wisun packet parameters
 pub fn set_wisun_packet_params_cmd(fcs_tx: FcsTx, whitening: Whitening, crc_on: CrcOn, mode_switch_tx: ModeSwitchTx, fec_tx: FecTx, frame_len_tx: u16, pbl_len_tx: u8, pbl_detect: u8) -> [u8; 7] {
     let mut cmd = [0u8; 7];

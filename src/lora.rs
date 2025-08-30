@@ -168,6 +168,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
         Ok(())
     }
 
+    #[allow(clippy::get_first)]
     /// Configure Side-Detector allowing multiple SF to be detected
     /// Must be called after set_lora_modulation
     /// If cfg is an empty slice, this disabled all side-detector
@@ -182,6 +183,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
         self.cmd_wr(&req[..len]).await
     }
 
+    #[allow(clippy::get_first)]
     /// Configure Side-Detector Syncword using basic syncword format
     pub async fn set_lora_sidedet_syncword(&mut self, sw: &[u8]) -> Result<(), Lr2021Error> {
         let req = [

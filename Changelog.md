@@ -1,16 +1,21 @@
 # Change Log
 
-## [0.5.0] - Unreleased
+## [0.5.0] - 2025-08-31
 
 ### Changed
   - FSK: dc_free parameter is now a bool in set_fsk_packet
-  - ZWave: timeout now uses the recommended value based on number of channel used
+  - ZWave:
+    * timeout now uses the recommended value based on number of channel used
+    * set_packet now uses a struct which can be build based on the Zwave mode
 
 ### Added
   - LoRa: add methods related to ranging, timing synch, preamble modulation
   - WM-Bus: API
   - Wisun: API
   - BPSK: API (TX only)
+  - System:
+    * `rd_mem` API allows reading a chunk of the chip memory (mainly for debug or multi-register dump)
+    * `ErrorsRsp` now has a defmt::Format implementation as-well as a direct access to the 32b value
 
 ## [0.4.0] - 2025-08-23
 

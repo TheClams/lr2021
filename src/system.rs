@@ -1,3 +1,4 @@
+use embassy_time::Duration;
 use embedded_hal::digital::v2::OutputPin;
 use embedded_hal_async::spi::SpiBus;
 
@@ -169,7 +170,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
             self.buffer_mut()[2] = ((addr>>16) & 0xFF) as u8;
             self.buffer_mut()[3] = ((addr>> 8) & 0xFF) as u8;
             self.buffer_mut()[4] = ( addr      & 0xFF) as u8;
-            self.buffer_mut()[5..len].copy_from_slice(&patch_block);
+            self.buffer_mut()[5..len].copy_from_slice(patch_block);
             self.cmd_buf_wr(len).await?;
             addr += 128;
         }
@@ -196,6 +197,24 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
         let mut rsp = ReadRegMem32Rsp::new();
         self.cmd_rd(&req, rsp.as_mut()).await?;
         Ok(rsp.value())
+    }
+
+    /// Read nb32 qword (max 40) from memory and save them inside local buffer
+    pub async fn rd_mem(&mut self, addr: u32, nb32: u8) -> Result<(), Lr2021Error> {
+        if nb32 > 40 {
+            return Err(Lr2021Error::CmdErr);
+        }
+        let req = read_reg_mem32_req(addr, nb32);
+        self.cmd_wr(&req).await?;
+        self.wait_ready(Duration::from_millis(1)).await?;
+        self.nss.set_low().map_err(|_| Lr2021Error::Pin)?;
+        self.buffer.nop();
+        let rsp_buf = &mut self.buffer.0[..4*nb32 as usize];
+        self.spi
+            .transfer_in_place(rsp_buf).await
+            .map_err(|_| Lr2021Error::Spi)?;
+        self.nss.set_high().map_err(|_| Lr2021Error::Pin)?;
+        self.buffer.cmd_status().check()
     }
 
     /// Write a register value

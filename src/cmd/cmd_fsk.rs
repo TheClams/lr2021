@@ -208,6 +208,7 @@ pub fn set_fsk_modulation_params_cmd(bitrate: u32, pulse_shape: PulseShape, rx_b
     cmd
 }
 
+#[allow(clippy::too_many_arguments)]
 /// Sets the packet parameters for FSK packets.. Command will fail if packet type is not FSK
 pub fn set_fsk_packet_params_cmd(pbl_len_tx: u16, pbl_len_detect: PblLenDetect, pbl_long: bool, pld_len_unit: PldLenUnit, addr_comp: AddrComp, fsk_pkt_format: FskPktFormat, pld_len: u16, crc: Crc, dc_free: bool) -> [u8; 9] {
     let mut cmd = [0u8; 9];

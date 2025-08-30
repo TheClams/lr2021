@@ -109,7 +109,7 @@ impl CmdBuffer {
 
     /// The bits [3:1] contains a CmdStatus
     pub fn cmd_status(&self) -> CmdStatus {
-        let bits_cmd = ((self.0[0] >> 1) & 7) as u8;
+        let bits_cmd = (self.0[0] >> 1) & 7;
         bits_cmd.into()
     }
 
@@ -124,6 +124,11 @@ impl CmdBuffer {
     }
 }
 
+impl Default for CmdBuffer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 
 /// LR2021 Device
@@ -268,7 +273,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     /// Write a command with vairable length payload
     /// Any feedback data will be available in side the local buffer
     pub async fn cmd_data_wr(&mut self, opcode: &[u8], data: &[u8]) -> Result<(), Lr2021Error> {
-        self.cmd_wr_begin(&opcode).await?;
+        self.cmd_wr_begin(opcode).await?;
         let rsp = &mut self.buffer.data_mut()[..data.len()];
         self.spi
             .transfer(rsp, data).await
@@ -278,7 +283,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
 
     /// Write a command with variable length payload, and save result provided buffer
     pub async fn cmd_data_rw(&mut self, opcode: &[u8], data: &mut [u8]) -> Result<(), Lr2021Error> {
-        self.cmd_wr_begin(&opcode).await?;
+        self.cmd_wr_begin(opcode).await?;
         self.spi
             .transfer_in_place(data).await
             .map_err(|_| Lr2021Error::Spi)?;

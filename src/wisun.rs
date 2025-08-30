@@ -14,6 +14,8 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
         self.cmd_wr(&req).await
     }
 
+    // TODO: add dedicated struct: two function based on mode_switch, find some good default based on standard
+    #[allow(clippy::too_many_arguments)]
     /// Set Wisun packet parameters: preamble, Bandwidth, Payload length, Address filtering
     pub async fn set_wisun_packet(&mut self, fcs_tx: FcsTx, whitening: Whitening, crc_on: CrcOn, mode_switch_tx: ModeSwitchTx, fec_tx: FecTx, frame_len_tx: u16, pbl_len_tx: u8, pbl_detect: Option<u8>) -> Result<(), Lr2021Error> {
         let req = set_wisun_packet_params_cmd(fcs_tx, whitening, crc_on, mode_switch_tx, fec_tx, frame_len_tx, pbl_len_tx, pbl_detect.unwrap_or(255));

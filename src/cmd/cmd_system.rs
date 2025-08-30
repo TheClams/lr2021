@@ -318,6 +318,7 @@ pub fn set_reg_mode_cmd(simo_usage: SimoUsage) -> [u8; 3] {
     cmd
 }
 
+#[allow(clippy::too_many_arguments)]
 /// Configures the SIMO mode and ramp times
 pub fn set_reg_mode_adv_cmd(simo_usage: SimoUsage, ramp_time_rc2ru_unit: RampTimeRc2ruUnit, ramp_time_rc2ru: u8, ramp_time_tx2ru_unit: RampTimeTx2ruUnit, ramp_time_tx2ru: u8, ramp_time_ru2rc_unit: RampTimeRu2rcUnit, ramp_time_ru2rc: u8, ramp_time_ramp_down_unit: RampTimeRampDownUnit, ramp_time_ramp_down: u8) -> [u8; 7] {
     let mut cmd = [0u8; 7];
@@ -679,11 +680,44 @@ impl ErrorsRsp {
     pub fn src_calib(&self) -> bool {
         (self.0[2] >> 5) & 0x1 != 0
     }
+    /// 32 bits values
+    pub fn value(&self) -> u32 {
+        u32::from_be_bytes(self.0)
+    }
+
+    /// Flag when no error are present
+    pub fn none(&self) -> bool {
+        self.0[0] == 0 && self.0[1] == 0 && self.0[2] == 0 && self.0[3] == 0
+    }
 }
 
 impl AsMut<[u8]> for ErrorsRsp {
     fn as_mut(&mut self) -> &mut [u8] {
         &mut self.0
+    }
+}
+#[cfg(feature = "defmt")]
+impl defmt::Format for ErrorsRsp {
+    fn format(&self, f: defmt::Formatter) {
+        defmt::write!(f, "Errors: ");
+        if self.none() {
+            defmt::write!(f, "None");
+            return;
+        }
+        if self.hf_xosc_start()       {defmt::write!(f, "HfXoscStart ")};
+        if self.lf_xosc_start()       {defmt::write!(f, "LfXoscStart ")};
+        if self.pll_lock()            {defmt::write!(f, "PllLock ")};
+        if self.lf_rc_calib()         {defmt::write!(f, "LfRcCalib ")};
+        if self.hf_rc_calib()         {defmt::write!(f, "HfRcCalib ")};
+        if self.pll_calib()           {defmt::write!(f, "PllCalib ")};
+        if self.aaf_calib()           {defmt::write!(f, "AafCalib ")};
+        if self.img_calib()           {defmt::write!(f, "ImgCalib ")};
+        if self.chip_busy()           {defmt::write!(f, "ChipBusy ")};
+        if self.rxfreq_no_fe_cal()    {defmt::write!(f, "RxfreqNoFeCal ")};
+        if self.meas_unit_adc_calib() {defmt::write!(f, "MeasUnitAdcCalib ")};
+        if self.pa_offset_calib()     {defmt::write!(f, "PaOffsetCalib ")};
+        if self.ppf_calib()           {defmt::write!(f, "PpfCalib ")};
+        if self.src_calib()           {defmt::write!(f, "SrcCalib ")};
     }
 }
 

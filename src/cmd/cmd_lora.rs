@@ -176,6 +176,7 @@ pub fn config_lora_preamble_modulation_cmd(pmod_en: bool, dram_ret: u8, wakeup_t
     cmd
 }
 
+#[allow(clippy::too_many_arguments)]
 /// Configures the LoRa phase modulation demodulation during preamble feature. If enabled, for TX the preamble will have a phase modulation overlayed to the LoRa modulation
 pub fn config_lora_preamble_modulation_adv_cmd(pmod_en: bool, dram_ret: u8, wakeup_time: u16, min_sleep_time: u32, err_thr: u8, min_sym: u8, detect_time_sym: u8, start_offset: u8, end_offset: u8) -> [u8; 12] {
     let mut cmd = [0u8; 12];

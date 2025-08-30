@@ -5151,7 +5151,7 @@ categories:
           - - 9
             - '0'
           description: 'FCS mode: auto to automatically generate FCS in TX and remove it in RX. In fifo mode, the FCS is expected
-            to be part of the payload ans is not checked in RX.'
+            to be part of the payload and is not checked in RX.'
           optional: false
           enum:
             AUTO: 0

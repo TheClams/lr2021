@@ -53,7 +53,7 @@ impl ZwavePacketParams {
         Self {
             mode: self.mode,
             rx_bw: self.rx_bw,
-            addr_comp: if beam_en {ZwaveAddrComp::HomeidBeam} else {ZwaveAddrComp::HomeidBeam},
+            addr_comp: if beam_en {ZwaveAddrComp::HomeidBeam} else {ZwaveAddrComp::Homeid},
             pld_len: self.pld_len,
             pbl_len_tx: self.pbl_len_tx,
             pbl_len_detect: self.pbl_len_detect,

@@ -8,6 +8,8 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     O: OutputPin, SPI: SpiBus<u8>, M: BusyPin
 {
 
+    // TODO: add dedicated struct. Default rxBw to auto, pbl_len to none, address filtering to true ? (add .without_filt ?) and deduce pbl_len from mode ?
+    #[allow(clippy::too_many_arguments)]
     /// Set Wmbus packet parameters: preamble, Bandwidth, Payload length, Address filtering
     pub async fn set_wmbus_packet(&mut self, mode: WmbusMode, rx_bw: RxBw, pkt_format_tx: PktFormatTx, addr_filt_en: bool, pld_len: u8, pbl_len_tx: u16, pbl_len_detect: Option<u8>) -> Result<(), Lr2021Error> {
         let req = set_wmbus_params_cmd(mode, rx_bw, pkt_format_tx, addr_filt_en, pld_len, pbl_len_tx, pbl_len_detect.unwrap_or(255));

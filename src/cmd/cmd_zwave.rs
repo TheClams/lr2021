@@ -31,7 +31,7 @@ pub enum ZwaveAddrComp {
     HomeidBeam = 2,
 }
 
-/// FCS mode: auto to automatically generate FCS in TX and remove it in RX. In fifo mode, the FCS is expected to be part of the payload ans is not checked in RX.
+/// FCS mode: auto to automatically generate FCS in TX and remove it in RX. In fifo mode, the FCS is expected to be part of the payload and is not checked in RX.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum FcsMode {
