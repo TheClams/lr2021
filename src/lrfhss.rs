@@ -19,6 +19,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     // TODO: add dedicated struct and find a good default set of values (maybe 2-3 builder method)
     #[allow(clippy::too_many_arguments)]
     /// Prepare the LR-FHSS packet
+    #[doc(alias = "lrfhss")]
     pub async fn lrfhss_build_packet(&mut self, sync_header_cnt: u8, cr: LrfhssCr, grid: Grid, hopping: Hopping, bw: u8, sequence: u16, offset: i8, pld: &[u8]) -> Result<(), Lr2021Error> {
         let req = lr_fhss_build_frame_cmd(sync_header_cnt, cr, grid, hopping, bw, sequence, offset);
         self.cmd_data_wr(&req, pld).await
@@ -26,6 +27,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
 
     /// Configure Syncword of LRFHSS packet
     /// Default value is 0x2C0F7995
+    #[doc(alias = "lrfhss")]
     pub async fn set_lrfhss_syncword(&mut self, syncword: u32) -> Result<(), Lr2021Error> {
         let req = set_lr_fhss_sync_word_cmd(syncword);
         self.cmd_wr(&req).await
@@ -33,6 +35,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
 
     /// Set the LRFHSS hopping table
     /// The data parameter should be up to 40 pairs (freq (4B), Nb_symbols (2B))
+    #[doc(alias = "lrfhss")]
     pub async fn set_lrfhss_hopping(&mut self, hop_en: bool, freq_hz: bool, pkt_length: u16, nb_used_freqs: u8, nb_hopping_blocks: u8, hops: &[LrfhssHop]) -> Result<(), Lr2021Error> {
         let req = write_lr_fhss_hopping_table_cmd(hop_en, freq_hz, pkt_length, nb_used_freqs, nb_hopping_blocks);
         self.cmd_wr_begin(&req).await?;

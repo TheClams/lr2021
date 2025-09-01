@@ -1,3 +1,52 @@
+//! # API related to Z-Wave operations
+//!
+//! This module provides an API for configuring and operating the LR2021 chip for Z-Wave communication.
+//! Z-Wave is a smart-home IoT protocol using ISM radio bands with data rates ranging from 9.6 up to 100 kb/s.
+//! It supports multiple modulation schemes (R1/R2/R3/LR1) and advanced features like multi-channel scanning,
+//! address filtering, and beam frame processing.
+//!
+//! Note: CRC generation and check is not available when using the LR1 rate, and must be checked by the host, 
+//! with FCS mode set to `FcsMode::Fifo`
+//!
+//! ## Quick Start
+//!
+//! Here's a typical sequence to initialize the chip for Z-Wave operations:
+//!
+//! ```rust,no_run
+//! use lr2021::radio::PacketType;
+//! use lr2021::zwave::{ZwaveScanCfg, ZwaveAddrComp, FcsMode, ZwaveRfRegion};
+//!
+//! // Set packet type to Z-Wave
+//! lr2021.set_packet_type(PacketType::Zwave).await.expect("Setting packet type");
+//!
+//! // Configure Z-Wave scan for EU region (scans R1, R2, R3 modes)
+//! let scan_cfg = ZwaveScanCfg::from_region(
+//!     ZwaveAddrComp::Off,    // No address filtering initially
+//!     FcsMode::Auto,         // Automatic frame check sequence
+//!     ZwaveRfRegion::Eu      // European region frequencies
+//! );
+//! lr2021.set_zwave_scan_config(&scan_cfg).await.expect("Setting scan config");
+//!
+//! // Start multi-channel scanning
+//! lr2021.start_zwave_scan().await.expect("Starting Z-Wave scan");
+//! ```
+//!
+//! ## Available Methods
+//!
+//! ### Core Z-Wave Methods
+//! - [`set_zwave_packet`](Lr2021::set_zwave_packet) - Configure packet parameters (mode, bandwidth, address filtering)
+//! - [`set_zwave_scan_config`](Lr2021::set_zwave_scan_config) - Configure multi-channel scanning parameters
+//! - [`start_zwave_scan`](Lr2021::start_zwave_scan) - Start scanning across configured channels
+//!
+//! ### Address and Filtering
+//! - [`set_zwave_home_id`](Lr2021::set_zwave_home_id) - Set home ID for network address filtering
+//! - [`set_zwave_beam_filt`](Lr2021::set_zwave_beam_filt) - Configure beam frame filtering parameters
+//!
+//! ### Status and Statistics
+//! - [`get_zwave_packet_status`](Lr2021::get_zwave_packet_status) - Get last packet status information
+//! - [`get_zwave_rx_stats`](Lr2021::get_zwave_rx_stats) - Get basic reception statistics
+//! - [`get_zwave_rx_stats_adv`](Lr2021::get_zwave_rx_stats_adv) - Get advanced reception statistics
+
 use embedded_hal::digital::v2::OutputPin;
 use embedded_hal_async::spi::SpiBus;
 
@@ -217,6 +266,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
 {
 
     /// Set ZWave packet parameters: preamble, syncword, header implicit/explicit, CRC and packet length (max 511)
+    #[doc(alias = "zwave")]
     pub async fn set_zwave_packet(&mut self, params: &ZwavePacketParams) -> Result<(), Lr2021Error> {
         let req = set_zwave_params_cmd(
             params.mode,
@@ -230,18 +280,21 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Sets the zwave Home ID, used as address filter in RX
+    #[doc(alias = "zwave")]
     pub async fn set_zwave_home_id(&mut self, id: u32) -> Result<(), Lr2021Error> {
         let req = set_zwave_home_id_filtering_cmd(id);
         self.cmd_wr(&req).await
     }
 
     /// Sets the zwave Beam frame filtering
+    #[doc(alias = "zwave")]
     pub async fn set_zwave_beam_filt(&mut self, beam_tag: u8, addr_len: AddrLen, node_id: u16, id_hash: u8) -> Result<(), Lr2021Error> {
         let req = set_zwave_beam_filtering_cmd(beam_tag, addr_len, node_id, id_hash);
         self.cmd_wr(&req).await
     }
 
     /// Configure scan: number of active channel, their mode and frequency
+    #[doc(alias = "zwave")]
     pub async fn set_zwave_scan_config(&mut self, cfg: &ZwaveScanCfg) -> Result<(), Lr2021Error> {
         let req = [0x02, 0x9C,
             cfg.cmd_nb_ch(),
@@ -282,12 +335,14 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Start the ZWave Scan: it will alternate between up to 4 channels to find an incoming packet
+    #[doc(alias = "zwave")]
     pub async fn start_zwave_scan(&mut self) -> Result<(), Lr2021Error> {
         let req = set_zwave_scan_cmd();
         self.cmd_wr(&req).await
     }
 
     /// Return length of last packet received
+    #[doc(alias = "zwave")]
     pub async fn get_zwave_packet_status(&mut self) -> Result<ZwavePacketStatusRsp, Lr2021Error> {
         let req = get_zwave_packet_status_req();
         let mut rsp = ZwavePacketStatusRsp::new();
@@ -296,6 +351,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Return basic RX stats
+    #[doc(alias = "zwave")]
     pub async fn get_zwave_rx_stats(&mut self) -> Result<ZwaveRxStatsRsp, Lr2021Error> {
         let req = get_zwave_rx_stats_req();
         let mut rsp = ZwaveRxStatsRsp::new();
@@ -304,6 +360,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Return advanced RX stats
+    #[doc(alias = "zwave")]
     pub async fn get_zwave_rx_stats_adv(&mut self) -> Result<ZwaveRxStatsRspAdv, Lr2021Error> {
         let req = get_zwave_rx_stats_req();
         let mut rsp = ZwaveRxStatsRspAdv::new();

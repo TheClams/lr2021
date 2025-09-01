@@ -1,5 +1,10 @@
 # Change Log
 
+## Unrelease
+
+### Changed
+  - Improved documentation (doc(alias), Summary of methods in each protocol file, ...)
+
 ## [0.5.0] - 2025-08-31
 
 ### Changed

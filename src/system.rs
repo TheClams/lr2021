@@ -1,3 +1,50 @@
+//! # System control and chip management API
+//!
+//! This module provides general APIs to control the LR2021 chip, including calibration, interrupts, 
+//! mode/status management, FIFO operations, and low-level register access. These are the core system 
+//! functions required for chip initialization, operation, and debugging across all communication protocols.
+//!
+//! ## Available Methods
+//!
+//! ### Status and Information
+//! - [`get_status`](Lr2021::get_status) - Read current chip status and interrupt flags
+//! - [`get_errors`](Lr2021::get_errors) - Get detailed error information from the chip
+//! - [`get_version`](Lr2021::get_version) - Get chip firmware version information
+//! - [`get_and_clear_irq`](Lr2021::get_and_clear_irq) - Read interrupt flags and clear them atomically
+//! - [`clear_irqs`](Lr2021::clear_irqs) - Clear specific interrupt flags
+//!
+//! ### Chip Mode and Power Management
+//! - [`set_chip_mode`](Lr2021::set_chip_mode) - Set chip operational mode (sleep, standby, FS, TX, RX)
+//!
+//! ### Calibration
+//! - [`calib_fe`](Lr2021::calib_fe) - Run front-end calibration on specified frequencies
+//!
+//! ### Interrupt Management
+//! - [`set_dio_irq`](Lr2021::set_dio_irq) - Configure a DIO pin for interrupt generation
+//!
+//! ### FIFO Operations
+//! #### TX FIFO
+//! - [`wr_tx_fifo_from`](Lr2021::wr_tx_fifo_from) - Write data to TX FIFO from external buffer
+//! - [`wr_tx_fifo`](Lr2021::wr_tx_fifo) - Write data to TX FIFO from internal buffer
+//! - [`get_tx_fifo_lvl`](Lr2021::get_tx_fifo_lvl) - Get number of bytes in TX FIFO
+//! - [`clear_tx_fifo`](Lr2021::clear_tx_fifo) - Clear all data from TX FIFO
+//!
+//! #### RX FIFO  
+//! - [`rd_rx_fifo_to`](Lr2021::rd_rx_fifo_to) - Read RX FIFO data to external buffer
+//! - [`rd_rx_fifo`](Lr2021::rd_rx_fifo) - Read RX FIFO data to internal buffer
+//! - [`get_rx_fifo_lvl`](Lr2021::get_rx_fifo_lvl) - Get number of bytes in RX FIFO
+//! - [`clear_rx_fifo`](Lr2021::clear_rx_fifo) - Clear all data from RX FIFO
+//!
+//! ### Patch RAM Operations
+//! - [`load_pram`](Lr2021::load_pram) - Load firmware patch into patch RAM
+//! - [`get_pram_info`](Lr2021::get_pram_info) - Get information about loaded patch (type/version)
+//!
+//! ### Register and Memory Access
+//! - [`rd_reg`](Lr2021::rd_reg) - Read a 32-bit register value
+//! - [`wr_reg`](Lr2021::wr_reg) - Write a 32-bit register value
+//! - [`wr_field`](Lr2021::wr_field) - Write to specific bit field in a register
+//! - [`rd_mem`](Lr2021::rd_mem) - Read multiple 32-bit words from memory to internal buffer
+
 use embassy_time::Duration;
 use embedded_hal::digital::v2::OutputPin;
 use embedded_hal_async::spi::SpiBus;
@@ -33,6 +80,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     O: OutputPin, SPI: SpiBus<u8>, M: BusyPin
 {
     /// Read status and interrupt from the chip
+    #[doc(alias = "system")]
     pub async fn get_status(&mut self) -> Result<(Status,Intr), Lr2021Error> {
         let req = get_status_req();
         let mut rsp = StatusRsp::new();
@@ -41,6 +89,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Read status and interrupt from the chip
+    #[doc(alias = "system")]
     pub async fn get_errors(&mut self) -> Result<ErrorsRsp, Lr2021Error> {
         let req = get_errors_req();
         let mut rsp = ErrorsRsp::new();
@@ -49,6 +98,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Read status and interrupt from the chip
+    #[doc(alias = "system")]
     pub async fn get_version(&mut self) -> Result<VersionRsp, Lr2021Error> {
         let req = get_version_req();
         let mut rsp = VersionRsp::new();
@@ -57,6 +107,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Read interrupt from the chip and clear them all
+    #[doc(alias = "system")]
     pub async fn get_and_clear_irq(&mut self) -> Result<Intr, Lr2021Error> {
         let req = get_and_clear_irq_req();
         let mut rsp = StatusRsp::new();
@@ -65,6 +116,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Set the RF channel (in Hz)
+    #[doc(alias = "system")]
     pub async fn clear_irqs(&mut self, intr: Intr) -> Result<(), Lr2021Error> {
         let req = clear_irq_cmd(intr.value());
         self.cmd_wr(&req).await
@@ -72,6 +124,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
 
     /// Run calibration on up to 3 frequencies on 16b (MSB encode RX Path)
     /// If none, use current frequency
+    #[doc(alias = "system")]
     pub async fn calib_fe(&mut self, freqs_4m: &[u16]) -> Result<(), Lr2021Error> {
         let f0 = freqs_4m.first().copied().unwrap_or(0);
         let f1 = freqs_4m.get(1).copied().unwrap_or(0);
@@ -82,6 +135,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Set Tx power and ramp time
+    #[doc(alias = "system")]
     pub async fn set_chip_mode(&mut self, chip_mode: ChipMode) -> Result<(), Lr2021Error> {
         match chip_mode {
             ChipMode::DeepSleep      => self.cmd_wr(&set_sleep_cmd(false, 0)).await,
@@ -96,6 +150,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Configure a pin as IRQ and enable interrupts for this pin
+    #[doc(alias = "system")]
     pub async fn set_dio_irq(&mut self, dio: u8, intr_en: Intr) -> Result<(), Lr2021Error> {
         let sleep_pull = if dio > 6 {PullDrive::PullAuto} else {PullDrive::PullUp};
         let req = set_dio_function_cmd(dio, DioFunc::Irq, sleep_pull);
@@ -106,12 +161,14 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
 
     /// Write data to the TX FIFO
     /// Check number of bytes available with get_tx_fifo_lvl()
+    #[doc(alias = "system")]
     pub async fn wr_tx_fifo_from(&mut self, buffer: &[u8]) -> Result<(), Lr2021Error> {
         self.cmd_data_wr(&[0,2], buffer).await
     }
 
     /// Write data to the TX FIFO
     /// Check number of bytes available with get_tx_fifo_lvl()
+    #[doc(alias = "system")]
     pub async fn wr_tx_fifo(&mut self, len: usize) -> Result<(), Lr2021Error> {
         self.cmd_wr_begin(&[0,2]).await?;
         self.spi
@@ -121,11 +178,13 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Clear TX Fifo
+    #[doc(alias = "system")]
     pub async fn clear_tx_fifo(&mut self) -> Result<(), Lr2021Error> {
         self.cmd_wr(&clear_tx_fifo_cmd()).await
     }
 
     /// Return number of byte in TX FIFO
+    #[doc(alias = "system")]
     pub async fn get_tx_fifo_lvl(&mut self) -> Result<u16, Lr2021Error> {
         let req = get_tx_fifo_level_req();
         let mut rsp = TxFifoLevelRsp::new();
@@ -134,11 +193,13 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Read data from the RX FIFO
+    #[doc(alias = "system")]
     pub async fn rd_rx_fifo_to(&mut self, buffer: &mut[u8]) -> Result<(), Lr2021Error> {
         self.cmd_data_rw(&[0,1], buffer).await
     }
 
     /// Read data from the RX FIFO to the local buffer
+    #[doc(alias = "system")]
     pub async fn rd_rx_fifo(&mut self, len: usize) -> Result<(), Lr2021Error> {
         self.cmd_wr_begin(&[0,1]).await?;
         self.spi
@@ -148,6 +209,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Return number of byte in RX FIFO
+    #[doc(alias = "system")]
     pub async fn get_rx_fifo_lvl(&mut self) -> Result<u16, Lr2021Error> {
         let req = get_rx_fifo_level_req();
         let mut rsp = RxFifoLevelRsp::new();
@@ -156,11 +218,13 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Clear RX Fifo
+    #[doc(alias = "system")]
     pub async fn clear_rx_fifo(&mut self) -> Result<(), Lr2021Error> {
         self.cmd_wr(&clear_rx_fifo_cmd()).await
     }
 
     /// Load a patch in ram
+    #[doc(alias = "system")]
     pub async fn load_pram(&mut self, patch: &[u8]) -> Result<(), Lr2021Error> {
         let mut addr = PRAM_PLD_ADDR;
         for patch_block in patch.chunks(32) {
@@ -178,6 +242,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Return type/version of the Patch Ram if loaded. None if no Patch Ram available
+    #[doc(alias = "system")]
     pub async fn get_pram_info(&mut self) -> Result<Option<(u8,u8)>, Lr2021Error> {
         // Check the Magic Word has been written, indicating a PAM was loaded
         let pram_mw = self.rd_reg(PRAM_MW_ADDR).await?;
@@ -192,6 +257,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Read a register value
+    #[doc(alias = "system")]
     pub async fn rd_reg(&mut self, addr: u32) -> Result<u32, Lr2021Error> {
         let req = read_reg_mem32_req(addr, 1);
         let mut rsp = ReadRegMem32Rsp::new();
@@ -200,6 +266,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Read nb32 qword (max 40) from memory and save them inside local buffer
+    #[doc(alias = "system")]
     pub async fn rd_mem(&mut self, addr: u32, nb32: u8) -> Result<(), Lr2021Error> {
         if nb32 > 40 {
             return Err(Lr2021Error::CmdErr);
@@ -218,12 +285,14 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Write a register value
+    #[doc(alias = "system")]
     pub async fn wr_reg(&mut self, addr: u32, value: u32) -> Result<(), Lr2021Error> {
         let req = write_reg_mem32_cmd(addr, value);
         self.cmd_wr(&req).await
     }
 
     /// Write a field value
+    #[doc(alias = "system")]
     pub async fn wr_field(&mut self, addr: u32, value: u32, pos: u8, width: u8) -> Result<(), Lr2021Error> {
         let mask =
             if width >= 32 {0xFFFFFFFF}

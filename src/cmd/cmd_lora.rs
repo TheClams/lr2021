@@ -375,13 +375,13 @@ impl LoraPacketStatusRsp {
         self.0[4] as i8
     }
 
-    /// Average over last packet received of RSSI. Actual signal power is –rssi_pkt/2 [dBm]
+    /// Average over last packet received of RSSI. Actual signal power is –rssi_pkt/2 (dBm)
     pub fn rssi_pkt(&self) -> u16 {
         (((self.0[7] >> 1) & 0x1) as u16) |
         ((self.0[5] as u16) << 1)
     }
 
-    /// Estimation of RSSI of the LoRa signal (after despreading) on last packet received. Actual value is -rssi_signal_pkt/2 [dBm]
+    /// Estimation of RSSI of the LoRa signal (after despreading) on last packet received. Actual value is -rssi_signal_pkt/2 (dBm)
     pub fn rssi_signal_pkt(&self) -> u16 {
         ((self.0[7] & 0x1) as u16) |
         ((self.0[6] as u16) << 1)
@@ -434,13 +434,13 @@ impl LoraPacketStatusRspAdv {
         self.0[4] as i8
     }
 
-    /// Average over last packet received of RSSI. Actual signal power is –rssi_pkt/2 [dBm]
+    /// Average over last packet received of RSSI. Actual signal power is –rssi_pkt/2 (dBm)
     pub fn rssi_pkt(&self) -> u16 {
         (((self.0[7] >> 1) & 0x1) as u16) |
         ((self.0[5] as u16) << 1)
     }
 
-    /// Estimation of RSSI of the LoRa signal (after despreading) on last packet received. Actual value is -rssi_signal_pkt/2 [dBm]
+    /// Estimation of RSSI of the LoRa signal (after despreading) on last packet received. Actual value is -rssi_signal_pkt/2 (dBm)
     pub fn rssi_signal_pkt(&self) -> u16 {
         ((self.0[7] & 0x1) as u16) |
         ((self.0[6] as u16) << 1)

@@ -48,7 +48,7 @@ pub fn set_ranging_req_addr_cmd(req_addr: u32) -> [u8; 6] {
     cmd
 }
 
-/// Gets the ranging result (For Master or spy only). Based on type parameter, different results are returned. The Distance [m] = rng1*150/(2^12*LoraBW), with LoraBW in MHz. For extended mode type=1 results, rng1 and rng2 values should be averaged to get a distance estimation unaffected by Doppler effect
+/// Gets the ranging result (For Master or spy only). Based on type parameter, different results are returned. The Distance (m) = rng1*150/(2^12*LoraBW), with LoraBW in MHz. For extended mode type=1 results, rng1 and rng2 values should be averaged to get a distance estimation unaffected by Doppler effect
 pub fn get_ranging_result_req(ranging_res_kind: RangingResKind) -> [u8; 3] {
     let mut cmd = [0u8; 3];
     cmd[0] = 0x02;

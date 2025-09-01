@@ -245,7 +245,8 @@ def gen_req(cmd: Command, _category: str, advanced: bool = False) -> str:
     lines : list[str] = []
     if len(params) > 7:
         lines.append('#[allow(clippy::too_many_arguments)]')
-    lines.append(f"/// {cmd.description}")
+    desc = cmd.description.replace('[', '(').replace(']', ')')
+    lines.append(f"/// {desc}")
     if param_list:
         lines.append(f"pub fn {func_name}({', '.join(param_list)}) -> [u8; {buffer_size}] {{")
     else:
@@ -354,7 +355,8 @@ def gen_rsp(cmd: Command, _category: str, advanced: bool = False) -> str:
         return_type = get_rust_type(field).replace('&[u8]', 'u32')  # Variable length becomes u32 for now
         
         lines.append(f"")
-        lines.append(f"    /// {field.description}")
+        desc = field.description.replace('[', '(').replace(']', ')')
+        lines.append(f"    /// {desc}")
 
         # Custom implementation
         if cmd.name == 'GetStatus' and field.name=='intr':

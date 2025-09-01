@@ -1,48 +1,55 @@
-# Driver for Semtech LR2021 transceiver
+# LR2021 Driver
 
-## General setup
+[![Crates.io](https://img.shields.io/crates/v/lr2021.svg)](https://crates.io/crates/lr2021)
+[![Documentation](https://docs.rs/lr2021/badge.svg)](https://docs.rs/lr2021)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/TheClams/lr2021)
 
----
-## Radio protocols
+An async, no_std Rust driver for the Semtech LR2021 dual-band transceiver, supporting many different radio protocols including LoRa, BLE, ZigBee, Z-Wave, and more.
 
-### LoRa
-Support all previous LoRa chips (dedicated legacy mode for SX127x syncword and SF6) and includes high bandwidth (1Mb/s) and better FEC.
+## Quick Start
 
-*Status:* Basic test between two LR2021
+Add this to your `Cargo.toml`:
 
-### BLE
-Bluetooth Low-Energy fully suppported, including BLE Coded.
+```toml
+[dependencies]
+lr2021 = "0.5.0"
+embassy-time = "0.3"
+```
 
-*Status:* Tested only for BLE 1MB/s, both between two LR2021 and with other chips.
+Basic usage:
 
-### FLRC (Fast Long Range Communication)
-Semtech proprietary protocol (G)MSK modulation with high sensitivity.
+```rust
+use lr2021_driver::Lr2021;
 
-*Status:* Basic test between two LR2021
+let mut radio = Lr2021::new(reset_pin, busy_pin, spi_device, nss_pin);
+radio.reset().await?;
+// Configure and use your preferred protocol
+```
 
-### Generic FSK (Frequency Shift Keying)
+## Hardware Requirements
 
-*Status:* Tested between two LR2021
+- Semtech LR2021 transceiver module
+- SPI-capable microcontroller
+- 3 GPIO pins: Reset (output), Busy (input), NSS/CS (output) (not counting SPI SCK/MISO/MOSI)
+- Embassy-compatible async runtime
 
-### ZWave
+## Documentation & Examples
 
-*Status:* Tested in scan mode against a ZStick S2 with basic communication established, amd receiving all standard mode (R1 to R3)
+- **[API Documentation](https://docs.rs/lr2021-driver)** - Complete API reference
+- **[Example Applications](https://github.com/TheClams/lr2021-apps)** - Real-world usage examples on Nucleo boards
 
-### WiSUN (Wireless Smart Utility Network)
+## Protocol Test Status
 
-### WMBus (Wireless MBus)
-
-### OOK (On-Off Keying)
-
-*Status:* Only ADSB reception validated
-
-### LR-FHSS
-Semtech proprietary protocol using ultra-narrow-band modulation with frequency hopping. Only transmission is supported.
-
-### BPSK
-Sigfox up-link modulation, TX only.
-
----
-## Examples
-A few simple applications using this driver are available
-in the Github repository [lr2021-apps](https://github.com/TheClams/lr2021-apps)
+| Protocol | Status | Notes |
+|----------|--------|-------|
+| LoRa |**Partial** | Basic communication between two LR2021 devices: Smallest SF, highest bandwidth |
+| BLE | **Partial** | 1MB/s mode, compatible with other BLE devices. TODO: 2Mb/s, Coded |
+| FLRC | **Tested** | Basic communication between two LR2021 devices, max rate only |
+| FSK | **Tested** | Generic FSK communication verified |
+| Z-Wave | **Tested** | Scan mode tested with ZStick S2, R1-R3 reception |
+| OOK | **Partial** | ADSB reception validated |
+| ZigBee | **Planned** |  |
+| WiSUN | **Planned** |  |
+| WMBus | **Planned** |  |
+| LR-FHSS | **Unplanned** | TX only (require gateway for test) |
+| Sigfox (BPSK) | **Unplanned** | TX only (require gateway for test) |

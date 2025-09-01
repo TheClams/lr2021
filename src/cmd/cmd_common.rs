@@ -238,7 +238,7 @@ pub fn reset_rx_stats_cmd() -> [u8; 2] {
     [0x02, 0x0A]
 }
 
-/// Gets the instantaneous RSSI value during reception of the packet. Returned value corresponds to -rssi/2 [dBm]
+/// Gets the instantaneous RSSI value during reception of the packet. Returned value corresponds to -rssi/2 (dBm)
 pub fn get_rssi_inst_req() -> [u8; 2] {
     [0x02, 0x0B]
 }
@@ -472,7 +472,7 @@ impl RssiInstRsp {
         Status::from_slice(&self.0[..2])
     }
 
-    /// Instantaneous RSSI value. Actual signal power is -rssi/2 [dBm]. If only 1 dBm resolution is wanted, reading the fractional bit is optional
+    /// Instantaneous RSSI value. Actual signal power is -rssi/2 (dBm). If only 1 dBm resolution is wanted, reading the fractional bit is optional
     pub fn rssi(&self) -> u16 {
         ((self.0[3] & 0x1) as u16) |
         ((self.0[2] as u16) << 1)
@@ -558,19 +558,19 @@ impl CcaResultRsp {
         Status::from_slice(&self.0[..2])
     }
 
-    /// Minimum RSSI value measured during CCA. Actual value is -rssi_min/2 [dBm]
+    /// Minimum RSSI value measured during CCA. Actual value is -rssi_min/2 (dBm)
     pub fn rssi_min(&self) -> u16 {
         (((self.0[5] >> 2) & 0x1) as u16) |
         ((self.0[2] as u16) << 1)
     }
 
-    /// Maximum RSSI value measured during CCA. Actual value is -rssi_max/2 [dBm]
+    /// Maximum RSSI value measured during CCA. Actual value is -rssi_max/2 (dBm)
     pub fn rssi_max(&self) -> u16 {
         (((self.0[5] >> 1) & 0x1) as u16) |
         ((self.0[3] as u16) << 1)
     }
 
-    /// Average RSSI value measured during CCA. Actual value is -rssi_avg/2 [dBm]
+    /// Average RSSI value measured during CCA. Actual value is -rssi_avg/2 (dBm)
     pub fn rssi_avg(&self) -> u16 {
         ((self.0[5] & 0x1) as u16) |
         ((self.0[4] as u16) << 1)
