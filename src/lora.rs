@@ -209,7 +209,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
         Ok(rsp)
     }
 
-    /// Return length of last packet received
+    /// Return RX statistics: packet received, CRC errors, ...
     #[doc(alias = "lora")]
     pub async fn get_lora_rx_stats(&mut self) -> Result<LoraRxStatsRsp, Lr2021Error> {
         let req = get_lora_rx_stats_req();

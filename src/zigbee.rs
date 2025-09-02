@@ -4,14 +4,44 @@ use embedded_hal_async::spi::SpiBus;
 pub use super::cmd::cmd_zigbee::*;
 use super::{BusyPin, Lr2021, Lr2021Error, RxBw};
 
+#[derive(Clone)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
+pub struct ZigbeePacketParams {
+    pub mode: ZigbeeMode,
+    pub rx_bw: RxBw,
+    pub pld_len: u8,
+    pub pbl_len_tx: u16,
+    pub addr_filt_en: bool,
+    pub fcs_mode: FcsMode,
+}
+
+impl ZigbeePacketParams {
+    pub fn new(mode: ZigbeeMode, pld_len: u8, addr_filt_en: bool) -> Self {
+        Self {
+            mode,
+            rx_bw: RxBw::BwAuto,
+            pld_len,
+            pbl_len_tx: 32,
+            addr_filt_en,
+            fcs_mode: FcsMode::FcsOn,
+        }
+    }
+}
+
 impl<O,SPI, M> Lr2021<O,SPI, M> where
     O: OutputPin, SPI: SpiBus<u8>, M: BusyPin
 {
 
     /// Set Zigbee packet parameters: preamble, Bandwidth, Payload length, Address filtering, FCS handling (software/Hardware)
     #[doc(alias = "zigbee")]
-    pub async fn set_zigbee_packet(&mut self, mode: ZigbeeMode, rx_bw: RxBw, pld_len: u8, pbl_len_tx: u16, addr_filt_en: bool, fcs_mode: FcsMode) -> Result<(), Lr2021Error> {
-        let req = set_zigbee_params_cmd(mode, rx_bw, pld_len, pbl_len_tx, addr_filt_en, fcs_mode);
+    pub async fn set_zigbee_packet(&mut self, params: &ZigbeePacketParams) -> Result<(), Lr2021Error> {
+        let req = set_zigbee_params_cmd(
+            params.mode,
+            params.rx_bw,
+            params.pld_len,
+            params.pbl_len_tx,
+            params.addr_filt_en,
+            params.fcs_mode);
         self.cmd_wr(&req).await
     }
 
