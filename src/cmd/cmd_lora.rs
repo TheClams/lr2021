@@ -1,6 +1,7 @@
 // Lora commands API
 
 use crate::status::Status;
+use super::cmd_system::DioNum;
 
 /// Spreading factor
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -276,13 +277,13 @@ pub fn set_lora_side_det_syncword_extended_cmd(sd1_sw1: u8, sd1_sw2: u8, sd2_sw1
 }
 
 /// Configures the LoRa Tx synchronization using dio
-pub fn set_lora_tx_sync_cmd(timing_sync_mode: TimingSyncMode, dio_num: u8) -> [u8; 3] {
+pub fn set_lora_tx_sync_cmd(timing_sync_mode: TimingSyncMode, dio_num: DioNum) -> [u8; 3] {
     let mut cmd = [0u8; 3];
     cmd[0] = 0x02;
     cmd[1] = 0x1D;
 
     cmd[2] |= ((timing_sync_mode as u8) & 0x3) << 6;
-    cmd[2] |= dio_num & 0xF;
+    cmd[2] |= (dio_num as u8) & 0xF;
     cmd
 }
 

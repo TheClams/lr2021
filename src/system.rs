@@ -19,8 +19,10 @@
 //! ### Calibration
 //! - [`calib_fe`](Lr2021::calib_fe) - Run front-end calibration on specified frequencies
 //!
-//! ### Interrupt Management
+//! ### I/O Management
 //! - [`set_dio_irq`](Lr2021::set_dio_irq) - Configure a DIO pin for interrupt generation
+//! - [`set_dio_function`](Lr2021::set_dio_function) - Configure a DIO pin function
+//! - [`set_dio_rf_switch`](Lr2021::set_dio_rf_switch) - Configure a DIO pin to control an RF Switch
 //!
 //! ### FIFO Operations
 //! #### TX FIFO
@@ -151,8 +153,23 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
 
     /// Configure a pin as IRQ and enable interrupts for this pin
     #[doc(alias = "system")]
-    pub async fn set_dio_irq(&mut self, dio: u8, intr_en: Intr) -> Result<(), Lr2021Error> {
-        let sleep_pull = if dio > 6 {PullDrive::PullAuto} else {PullDrive::PullUp};
+    pub async fn set_dio_function(&mut self, dio: DioNum, func: DioFunc, pull_drive: PullDrive) -> Result<(), Lr2021Error> {
+        let req = set_dio_function_cmd(dio, func, pull_drive);
+        self.cmd_wr(&req).await
+    }
+
+    /// Configure a pin as An RF Switch
+    /// Each args flags when the IO should be high
+    #[doc(alias = "system")]
+    pub async fn set_dio_rf_switch(&mut self, dio_num: DioNum, tx_hf: bool, rx_hf: bool, tx_lf: bool, rx_lf: bool, standby: bool) -> Result<(), Lr2021Error> {
+        let req = set_dio_rf_switch_config_cmd(dio_num, tx_hf, rx_hf, tx_lf, rx_lf, standby);
+        self.cmd_wr(&req).await
+    }
+
+    /// Configure a pin as IRQ and enable interrupts for this pin
+    #[doc(alias = "system")]
+    pub async fn set_dio_irq(&mut self, dio: DioNum, intr_en: Intr) -> Result<(), Lr2021Error> {
+        let sleep_pull = if dio==DioNum::Dio5 || dio==DioNum::Dio6 {PullDrive::PullAuto} else {PullDrive::PullUp};
         let req = set_dio_function_cmd(dio, DioFunc::Irq, sleep_pull);
         self.cmd_wr(&req).await?;
         let req = set_dio_irq_config_cmd(dio, intr_en.value());

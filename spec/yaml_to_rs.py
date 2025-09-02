@@ -515,6 +515,8 @@ def gen_file(category: str, commands: list[Command], output_dir: Path) -> None:
         lines.append("use super::RxBw;")
     if category in ['flrc', 'bpsk', 'ook']:
         lines.append("use super::PulseShape;")
+    if category in ['lora']:
+        lines.append("use super::cmd_system::DioNum;")
     
     # Collect all enums first
     enum_kind : dict[str,list[str]] = {}
@@ -531,7 +533,7 @@ def gen_file(category: str, commands: list[Command], output_dir: Path) -> None:
         for param in cmd.parameters:
             if param.enum:
                 n = snake_to_pascal(param.name)
-                if n in enum_remap.keys() or (n in ['RxBw', 'PulseShape'] and category!='fsk') or n=='TempFormat':
+                if n in enum_remap.keys() or (n in ['RxBw', 'PulseShape'] and category!='fsk') or n=='TempFormat' or (n=='DioNum' and category=='lora'):
                     continue
                 if n in enum_kind.keys():
                     if list(param.enum.keys()) != enum_kind[n]:

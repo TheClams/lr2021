@@ -76,6 +76,8 @@
 use embedded_hal::digital::v2::OutputPin;
 use embedded_hal_async::spi::SpiBus;
 
+use crate::system::DioNum;
+
 pub use super::cmd::cmd_lora::*;
 pub use super::cmd::cmd_ranging::*;
 use super::{
@@ -376,7 +378,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     /// The initiator sends a special frame when the dio is asserted
     /// The responder is in reception mode and will assert the DIO a known delay after reception of the TimingSync packet
     #[doc(alias = "lora")]
-    pub async fn set_lora_timing_sync(&mut self, mode: TimingSyncMode, dio_num: u8) -> Result<(), Lr2021Error> {
+    pub async fn set_lora_timing_sync(&mut self, mode: TimingSyncMode, dio_num: DioNum) -> Result<(), Lr2021Error> {
         let req = set_lora_tx_sync_cmd(mode, dio_num);
         self.cmd_wr(&req).await
     }

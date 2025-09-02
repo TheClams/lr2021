@@ -1,10 +1,14 @@
 # Change Log
 
-## Unrelease
+## [0.6.0] - Unreleased
 
 ### Changed
   - Improved documentation (doc(alias), Summary of methods in each protocol file, ...)
-  - `set_rx_path`: now uses an enum RxBoost instead of a u8
+  - Use enum for RxBoost in `set_rx_path`
+  - Use enum for DIO in `set_dio_function_cmd`, `set_dio_irq_config_cmd`, `set_dio_rf_switch_config_cmd` and `set_lora_timing_sync`
+
+### Added
+  - Add API to control DIO functions (`set_dio_function` and `set_dio_rf_switch`)
 
 ## [0.5.0] - 2025-08-31
 

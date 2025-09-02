@@ -2341,6 +2341,14 @@ categories:
             - '3:0'
           description: DIO used to start the sync or output a sync (5 to 11)
           optional: false
+          enum:
+            DIO5 : 5
+            DIO6 : 6
+            DIO7 : 7
+            DIO8 : 8
+            DIO9 : 9
+            DIO10 : 10
+            DIO11 : 11
 
   lrfhss:
     commands:
@@ -3589,13 +3597,21 @@ categories:
         description: Configure the functionality of the freely configurable DIOs, as well as the pull-up/down configuration
           for sleep modes. On DIO5, only DIO_SLEEP_PULL_UP is accepted. DIO5/6 have pull-up by default
         parameters:
-        - name: dio
+        - name: dio_num
           bit_width: 4
           byte_positions:
           - - 2
             - '3:0'
           description: DIO number (allowed values are 5-11)
           optional: false
+          enum:
+            DIO5 : 5
+            DIO6 : 6
+            DIO7 : 7
+            DIO8 : 8
+            DIO9 : 9
+            DIO10 : 10
+            DIO11 : 11
         - name: dio_func
           bit_width: 4
           byte_positions:
@@ -3630,13 +3646,21 @@ categories:
         opcode: 275
         description: Configure the value of the specified DIO pin when configured as RF switch with the SetDioFunction command
         parameters:
-        - name: dio
+        - name: dio_num
           bit_width: 4
           byte_positions:
           - - 2
             - '3:0'
           description: DIO number (allowed values are 5-11)
           optional: false
+          enum:
+            DIO5 : 5
+            DIO6 : 6
+            DIO7 : 7
+            DIO8 : 8
+            DIO9 : 9
+            DIO10 : 10
+            DIO11 : 11
         - name: tx_hf
           bit_width: 1
           byte_positions:
@@ -3694,13 +3718,21 @@ categories:
         opcode: 277
         description: Configure IRQs which assert DIO pin
         parameters:
-        - name: dio
+        - name: dio_num
           bit_width: 4
           byte_positions:
           - - 2
             - '3:0'
           description: DIO number (allowed values are 5-11)
           optional: false
+          enum:
+            DIO5 : 5
+            DIO6 : 6
+            DIO7 : 7
+            DIO8 : 8
+            DIO9 : 9
+            DIO10 : 10
+            DIO11 : 11
         - name: irqs
           bit_width: 32
           byte_positions:

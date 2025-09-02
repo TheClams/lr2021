@@ -2,6 +2,19 @@
 
 use crate::status::{Status,Intr};
 
+/// DIO number (allowed values are 5-11)
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
+pub enum DioNum {
+    Dio5 = 5,
+    Dio6 = 6,
+    Dio7 = 7,
+    Dio8 = 8,
+    Dio9 = 9,
+    Dio10 = 10,
+    Dio11 = 11,
+}
+
 /// DIO function selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
@@ -175,24 +188,24 @@ pub fn clear_errors_cmd() -> [u8; 2] {
 }
 
 /// Configure the functionality of the freely configurable DIOs, as well as the pull-up/down configuration for sleep modes. On DIO5, only DIO_SLEEP_PULL_UP is accepted. DIO5/6 have pull-up by default
-pub fn set_dio_function_cmd(dio: u8, dio_func: DioFunc, pull_drive: PullDrive) -> [u8; 4] {
+pub fn set_dio_function_cmd(dio_num: DioNum, dio_func: DioFunc, pull_drive: PullDrive) -> [u8; 4] {
     let mut cmd = [0u8; 4];
     cmd[0] = 0x01;
     cmd[1] = 0x12;
 
-    cmd[2] |= dio & 0xF;
+    cmd[2] |= (dio_num as u8) & 0xF;
     cmd[3] |= ((dio_func as u8) & 0xF) << 4;
     cmd[3] |= (pull_drive as u8) & 0xF;
     cmd
 }
 
 /// Configure the value of the specified DIO pin when configured as RF switch with the SetDioFunction command
-pub fn set_dio_rf_switch_config_cmd(dio: u8, tx_hf: bool, rx_hf: bool, tx_lf: bool, rx_lf: bool, standby: bool) -> [u8; 4] {
+pub fn set_dio_rf_switch_config_cmd(dio_num: DioNum, tx_hf: bool, rx_hf: bool, tx_lf: bool, rx_lf: bool, standby: bool) -> [u8; 4] {
     let mut cmd = [0u8; 4];
     cmd[0] = 0x01;
     cmd[1] = 0x13;
 
-    cmd[2] |= dio & 0xF;
+    cmd[2] |= (dio_num as u8) & 0xF;
     if tx_hf { cmd[3] |= 16; }
     if rx_hf { cmd[3] |= 8; }
     if tx_lf { cmd[3] |= 4; }
@@ -213,12 +226,12 @@ pub fn clear_fifo_irq_flags_cmd(rx_fifo_flags_to_clear: u8, tx_fifo_flags_to_cle
 }
 
 /// Configure IRQs which assert DIO pin
-pub fn set_dio_irq_config_cmd(dio: u8, irqs: u32) -> [u8; 7] {
+pub fn set_dio_irq_config_cmd(dio_num: DioNum, irqs: u32) -> [u8; 7] {
     let mut cmd = [0u8; 7];
     cmd[0] = 0x01;
     cmd[1] = 0x15;
 
-    cmd[2] |= dio & 0xF;
+    cmd[2] |= (dio_num as u8) & 0xF;
     cmd[3] |= ((irqs >> 24) & 0xFF) as u8;
     cmd[4] |= ((irqs >> 16) & 0xFF) as u8;
     cmd[5] |= ((irqs >> 8) & 0xFF) as u8;
