@@ -4,6 +4,7 @@
 
 ### Changed
   - Improved documentation (doc(alias), Summary of methods in each protocol file, ...)
+  - `set_rx_path`: now uses an enum RxBoost instead of a u8
 
 ## [0.5.0] - 2025-08-31
 

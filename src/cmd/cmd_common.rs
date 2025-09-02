@@ -10,6 +10,20 @@ pub enum RxPath {
     HfPath = 1,
 }
 
+/// RX boost configuration (0..7). Will keep previous value if not sent
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
+pub enum RxBoost {
+    Off = 0,
+    B1 = 1,
+    B2 = 2,
+    B3 = 3,
+    B4 = 4,
+    B5 = 5,
+    B6 = 6,
+    Max = 7,
+}
+
 /// Select which PA to use
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
@@ -150,13 +164,13 @@ pub fn set_rx_path_cmd(rx_path: RxPath) -> [u8; 3] {
 }
 
 /// Sets the RX path and boost configuration. If rx_boost is changed, the SRC calibration (ADC offset) is run again for G12 and G13 with the updated boost configuration
-pub fn set_rx_path_adv_cmd(rx_path: RxPath, rx_boost: u8) -> [u8; 4] {
+pub fn set_rx_path_adv_cmd(rx_path: RxPath, rx_boost: RxBoost) -> [u8; 4] {
     let mut cmd = [0u8; 4];
     cmd[0] = 0x02;
     cmd[1] = 0x01;
 
     cmd[2] |= (rx_path as u8) & 0x1;
-    cmd[3] |= rx_boost & 0x7;
+    cmd[3] |= (rx_boost as u8) & 0x7;
     cmd
 }
 

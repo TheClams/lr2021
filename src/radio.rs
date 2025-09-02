@@ -62,7 +62,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
 
     /// Set the RX Path (LF/HF)
     #[doc(alias = "radio")]
-    pub async fn set_rx_path(&mut self, rx_path: RxPath, rx_boost: u8) -> Result<(), Lr2021Error> {
+    pub async fn set_rx_path(&mut self, rx_path: RxPath, rx_boost: RxBoost) -> Result<(), Lr2021Error> {
         let req = set_rx_path_adv_cmd(rx_path, rx_boost);
         self.cmd_wr(&req).await
     }

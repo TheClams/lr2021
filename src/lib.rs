@@ -278,7 +278,6 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
 {
 
     /// Reset the chip
-    #[doc(alias = "lib")]
     pub async fn reset(&mut self) -> Result<(), Lr2021Error> {
         self.nreset.set_low().map_err(|_| Lr2021Error::Pin)?;
         Timer::after_millis(10).await;
@@ -288,44 +287,37 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Check if the busy pin is high (debug)
-    #[doc(alias = "lib")]
     pub fn is_busy(&self) -> bool {
         self.busy.is_high().unwrap_or(false)
     }
 
     /// Last status (command status, chip mode, interrupt, ...)
-    #[doc(alias = "lib")]
     pub fn status(&self) -> Status {
         self.buffer.status()
     }
 
     /// Read access to internal buffer
-    #[doc(alias = "lib")]
     pub fn buffer(&self) -> &[u8] {
         self.buffer.data()
     }
 
     /// Read/Write access to internal buffer
-    #[doc(alias = "lib")]
     pub fn buffer_mut(&mut self) -> &mut [u8] {
         self.buffer.data_mut()
     }
 
     /// Last captured interrupt status
     /// Note: might be incomplete if last command was less than 6 bytes
-    #[doc(alias = "lib")]
     pub fn last_intr(&self) -> Intr {
         Intr::from_slice(&self.buffer.data()[2..6])
     }
 
     /// Wait for LR2021 to be ready for a command, i.e. busy pin low
-    #[doc(alias = "lib")]
     pub async fn wait_ready(&mut self, timeout: Duration) -> Result<(), Lr2021Error> {
         M::wait_ready(&mut self.busy, timeout).await
     }
 
     /// Write the beginning of a command, allowing to fill with variable length fields
-    #[doc(alias = "lib")]
     pub async fn cmd_wr_begin(&mut self, req: &[u8]) -> Result<(), Lr2021Error> {
         if req.len() > BUFFER_SIZE {
             return Err(Lr2021Error::InvalidSize);
@@ -340,7 +332,6 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Write a command
-    #[doc(alias = "lib")]
     pub async fn cmd_wr(&mut self, req: &[u8]) -> Result<(), Lr2021Error> {
         // #[cfg(feature = "defmt")]{defmt::info!("[CMD WR] {:02x}", req);}
         self.cmd_wr_begin(req).await?;
@@ -349,7 +340,6 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
 
     /// Write a command and read response
     /// Rsp must be n bytes where n is the number of expected byte
-    #[doc(alias = "lib")]
     pub async fn cmd_rd(&mut self, req: &[u8], rsp: &mut [u8]) -> Result<(), Lr2021Error> {
         self.cmd_wr(req).await?;
         // Wait for busy to go down before reading the response
@@ -369,7 +359,6 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
 
     /// Write a command with vairable length payload
     /// Any feedback data will be available in side the local buffer
-    #[doc(alias = "lib")]
     pub async fn cmd_data_wr(&mut self, opcode: &[u8], data: &[u8]) -> Result<(), Lr2021Error> {
         self.cmd_wr_begin(opcode).await?;
         let rsp = &mut self.buffer.data_mut()[..data.len()];
@@ -380,7 +369,6 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Write a command with variable length payload, and save result provided buffer
-    #[doc(alias = "lib")]
     pub async fn cmd_data_rw(&mut self, opcode: &[u8], data: &mut [u8]) -> Result<(), Lr2021Error> {
         self.cmd_wr_begin(opcode).await?;
         self.spi
@@ -390,7 +378,6 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Send content of the local buffer as a command
-    #[doc(alias = "lib")]
     pub async fn cmd_buf_wr(&mut self, len: usize) -> Result<(), Lr2021Error> {
         self.wait_ready(Duration::from_millis(100)).await?;
         self.nss.set_low().map_err(|_| Lr2021Error::Pin)?;
@@ -401,7 +388,6 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Send content of the local buffer as a command and read a response
-    #[doc(alias = "lib")]
     pub async fn cmd_buf_rd(&mut self, len: usize, rsp: &mut [u8]) -> Result<(), Lr2021Error> {
         self.cmd_buf_wr(len).await?;
         // Wait for busy to go down before reading the response
@@ -419,7 +405,6 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Wake-up the chip from a sleep mode (Set NSS low until busy goes low)
-    #[doc(alias = "lib")]
     pub async fn wake_up(&mut self) -> Result<(), Lr2021Error> {
         self.nss.set_low().map_err(|_| Lr2021Error::Pin)?;
         self.wait_ready(Duration::from_millis(100)).await?;
