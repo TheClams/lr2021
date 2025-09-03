@@ -20,7 +20,10 @@
 //! ### Operation Mode Control
 //! - [`set_fallback`](Lr2021::set_fallback) - Set fallback mode after TX/RX completion
 //! - [`set_tx`](Lr2021::set_tx) - Enter transmission mode with timeout
+//! - [`set_tx_test`](Lr2021::set_tx_test) - Start TX in test mode (infinite preamble, continuous wave or PRBS9)
 //! - [`set_rx`](Lr2021::set_rx) - Enter reception mode with timeout and ready wait option
+//! - [`set_rx_duty_cycle`](Lr2021::set_rx_duty_cycle) - Start periodic RX
+//! - [`set_auto_rxtx`](Lr2021::set_auto_rxtx) - Configure automatic Transmission/reception after RxDone/TxDone
 //!
 //! ### Channel Activity Detection (CAD)
 //! - [`set_cad_params`](Lr2021::set_cad_params) - Configure CAD parameters (timeout, threshold, exit mode)
@@ -39,6 +42,14 @@
 //! - [`clear_rx_stats`](Lr2021::clear_rx_stats) - Clear reception statistics
 //! - [`get_rx_pkt_len`](Lr2021::get_rx_pkt_len) - Get length of last received packet
 //! - [`force_crc_out`](Lr2021::force_crc_out) - Force CRC output to FIFO even when hardware-checked
+//!
+//! ### Timing
+//! - [`set_timestamp_source`](Lr2021::set_timestamp_source) - Set source for a timestamp (up to 3 configurable)
+//! - [`get_timestamp`](Lr2021::get_timestamp) - Get Timestamp (as number of HF tick elapsed until NSS)
+//! - [`set_default_timeout`](Lr2021::set_default_timeout) - Set default timeout for TX/RX operation
+//! - [`set_stop_timeout`](Lr2021::set_stop_timeout) - Set whether the RX timeout stops when preamble is detected or when the synchronization is confirmed
+//!
+
 
 use embassy_time::{Duration, Timer};
 use embedded_hal::digital::v2::OutputPin;
@@ -109,6 +120,13 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
         self.cmd_wr(&req).await
     }
 
+    /// Start TX in test mode (infinite preamble, continuous wave or PRBS9)
+    #[doc(alias = "radio")]
+    pub async fn set_tx_test(&mut self, mode: TestMode) -> Result<(), Lr2021Error> {
+        let req = set_tx_test_mode_cmd(mode);
+        self.cmd_wr(&req).await
+    }
+
     /// Set chip in RX mode. A timeout equal to 0 means a single reception, the value 0xFFFFFF is for continuous RX (i.e. always restart reception)
     /// and any other value, the chip will go back to its fallback mode if a reception does not occur before the timeout is elapsed
     #[doc(alias = "radio")]
@@ -119,6 +137,26 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
             self.wait_ready(Duration::from_millis(100)).await?;
         }
         Ok(())
+    }
+
+    /// Start periodic RX
+    /// Radio listens for `rx_max_time`: go to sleep once packet is received or no packet was detect
+    /// Repeat operation every `cycle_time` (which must be bigger than rx_max_time)
+    /// The `use_lora_cad` is only valid if packet type was set to LoRa and performs a CAD instead of a standard reception.
+    /// In this case the exit mode of the CAD is performed, i.e. it can start a TX if configured as Listen-Before-Talk
+    #[doc(alias = "radio")]
+    pub async fn set_rx_duty_cycle(&mut self, listen_time: u32, cycle_time: u32, use_lora_cad: bool, dram_ret: u8) -> Result<(), Lr2021Error> {
+        let req = set_rx_duty_cyle_cmd(listen_time, cycle_time, use_lora_cad, dram_ret);
+        self.cmd_wr(&req).await
+    }
+
+    /// Configure automatic Transmission/reception after RxDone/TxDone
+    /// This mode triggers only once and must re-enabled.
+    /// When clear is set, the auto_txrx is cleared even on RX timeout.
+    #[doc(alias = "radio")]
+    pub async fn set_auto_rxtx(&mut self, clear: bool, mode: AutoTxrxMode, timeout: u32, delay: u32) -> Result<(), Lr2021Error> {
+        let req = set_auto_rx_tx_cmd(clear, mode, timeout, delay);
+        self.cmd_wr(&req).await
     }
 
     /// Configure parameters for Channel Activity Detection
@@ -207,6 +245,37 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
         // Restore RSSI settings
         self.wr_reg(0xF3014C, cfg_rssi).await?;
         Ok(rssi)
+    }
+
+    /// Set default timeout for TX/RX operation
+    /// Used when started on DIO trigger
+    #[doc(alias = "radio")]
+    pub async fn set_default_timeout(&mut self, tx: u32, rx: u32) -> Result<(), Lr2021Error> {
+        let req = set_default_rx_tx_timeout_cmd(rx, tx);
+        self.cmd_wr(&req).await
+    }
+
+    /// Set whether the RX timeout stops when preamble is detected or when the synchronization is confirmed
+    #[doc(alias = "radio")]
+    pub async fn set_stop_timeout(&mut self, on_preamble: bool) -> Result<(), Lr2021Error> {
+        let req = set_stop_timeout_cmd(on_preamble);
+        self.cmd_wr(&req).await
+    }
+
+    /// Set source for a timestamp (up to 3 configurable)
+    #[doc(alias = "radio")]
+    pub async fn set_timestamp_source(&mut self, index: TimestampIndex, source: TimestampSource) -> Result<(), Lr2021Error> {
+        let req = set_timestamp_source_cmd(index, source);
+        self.cmd_wr(&req).await
+    }
+
+    /// Get Timestamp (as number of HF tick elapsed until NSS)
+    #[doc(alias = "radio")]
+    pub async fn get_timestamp(&mut self, index: TimestampIndex) -> Result<u32, Lr2021Error> {
+        let req = get_timestamp_value_req(index);
+        let mut rsp = TimestampValueRsp::new();
+        self.cmd_rd(&req, rsp.as_mut()).await?;
+        Ok(rsp.timestamp())
     }
 
 }

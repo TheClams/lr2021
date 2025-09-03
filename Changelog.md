@@ -1,6 +1,6 @@
 # Change Log
 
-## [0.6.0] - Unreleased
+## [0.6.0] - 2025-09-03
 
 ### Changed
   - Improved documentation (doc(alias), Summary of methods in each protocol file, ...)
@@ -9,6 +9,8 @@
 
 ### Added
   - Add API to control DIO functions (`set_dio_function` and `set_dio_rf_switch`)
+  - Add API related to packet timestamp (`set_timestamp_source` and `get_timestamp`)
+  - Add API related to TX/RS (`set_tx_test_mode`, `set_auto_txrx` and `set_rx_duty_cycle`)
 
 ## [0.5.0] - 2025-08-31
 

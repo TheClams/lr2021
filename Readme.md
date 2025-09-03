@@ -48,7 +48,7 @@ radio.reset().await?;
 | FSK | **Tested** | Generic FSK communication verified |
 | Z-Wave | **Tested** | Scan mode tested with ZStick S2, R1-R3 reception |
 | OOK | **Partial** | ADSB reception validated |
-| ZigBee | **Planned** |  |
+| ZigBee | **Partial** | Reception validated with standard device |
 | WiSUN | **Planned** |  |
 | WMBus | **Planned** |  |
 | LR-FHSS | **Unplanned** | TX only (require gateway for test) |

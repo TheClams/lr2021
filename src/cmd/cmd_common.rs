@@ -93,21 +93,13 @@ pub enum PacketType {
     Zigbee = 13,
 }
 
-/// Timeout stop condition
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[cfg_attr(feature = "defmt", derive(defmt::Format))]
-pub enum StopTimeout {
-    StopOnSyncwordHeader = 0,
-    StopOnPreamble = 1,
-}
-
 /// Test mode selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum TestMode {
-    NormalTx = 0,
-    InfinitePreamble = 1,
-    ContinuousWave = 2,
+    Packet = 0,
+    Preamble = 1,
+    Tone = 2,
     Prbs9 = 3,
 }
 
@@ -117,13 +109,22 @@ pub enum TestMode {
 pub enum AutoTxrxMode {
     Disable = 0,
     Always = 1,
-    Valid = 2,
+    RxOk = 2,
+}
+
+/// Index of the source to configure (0-2)
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
+pub enum TimestampIndex {
+    Ts0 = 0,
+    Ts1 = 1,
+    Ts2 = 2,
 }
 
 /// Event source selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
-pub enum Source {
+pub enum TimestampSource {
     None = 0,
     TxDone = 1,
     RxDone = 2,
@@ -238,12 +239,12 @@ pub fn get_packet_type_req() -> [u8; 2] {
 }
 
 /// Defines if the RX timeout should be stopped on Syncword/Header detection or on Preamble detection
-pub fn set_stop_timeout_cmd(stop_timeout: StopTimeout) -> [u8; 3] {
+pub fn set_stop_timeout_cmd(stop_on_preamble: bool) -> [u8; 3] {
     let mut cmd = [0u8; 3];
     cmd[0] = 0x02;
     cmd[1] = 0x09;
 
-    cmd[2] |= (stop_timeout as u8) & 0x1;
+    if stop_on_preamble { cmd[2] |= 1; }
     cmd
 }
 
@@ -311,6 +312,23 @@ pub fn sel_pa_cmd(pa_sel: PaSel) -> [u8; 3] {
     cmd
 }
 
+/// Start reception every cycle_time and listen for rx_max_time
+pub fn set_rx_duty_cyle_cmd(rx_max_time: u32, cycle_time: u32, use_lora_cad: bool, dram_ret: u8) -> [u8; 9] {
+    let mut cmd = [0u8; 9];
+    cmd[0] = 0x02;
+    cmd[1] = 0x11;
+
+    cmd[2] |= ((rx_max_time >> 16) & 0xFF) as u8;
+    cmd[3] |= ((rx_max_time >> 8) & 0xFF) as u8;
+    cmd[4] |= (rx_max_time & 0xFF) as u8;
+    cmd[5] |= ((cycle_time >> 16) & 0xFF) as u8;
+    cmd[6] |= ((cycle_time >> 8) & 0xFF) as u8;
+    cmd[7] |= (cycle_time & 0xFF) as u8;
+    if use_lora_cad { cmd[8] |= 16; }
+    cmd[8] |= dram_ret & 0x7;
+    cmd
+}
+
 /// Activate or deactivate the auto TX/auto RX mode. In auto RX mode, chip automatically goes from TX to RX after TxDone. In auto TX mode, chip automatically goes from RX to TX after RxDone
 pub fn set_auto_rx_tx_cmd(clear: bool, auto_txrx_mode: AutoTxrxMode, timeout: u32, delay: u32) -> [u8; 10] {
     let mut cmd = [0u8; 10];
@@ -360,23 +378,23 @@ pub fn set_default_rx_tx_timeout_cmd(rx_timeout: u32, tx_timeout: u32) -> [u8; 8
 }
 
 /// Sets the source event for time-stamping different radio events. 3 sources can be configured in parallel
-pub fn set_timestamp_source_cmd(index: u8, source: Source) -> [u8; 3] {
+pub fn set_timestamp_source_cmd(timestamp_index: TimestampIndex, timestamp_source: TimestampSource) -> [u8; 3] {
     let mut cmd = [0u8; 3];
     cmd[0] = 0x02;
     cmd[1] = 0x16;
 
-    cmd[2] |= (index & 0x3) << 4;
-    cmd[2] |= (source as u8) & 0xF;
+    cmd[2] |= ((timestamp_index as u8) & 0x3) << 4;
+    cmd[2] |= (timestamp_source as u8) & 0xF;
     cmd
 }
 
 /// Get the delay in HF clk tick between the event and the SPI NSS falling edge of the request. Will not return a correct value if the event occurred before a sleep period
-pub fn get_timestamp_value_req(index: u8) -> [u8; 3] {
+pub fn get_timestamp_value_req(timestamp_index: TimestampIndex) -> [u8; 3] {
     let mut cmd = [0u8; 3];
     cmd[0] = 0x02;
     cmd[1] = 0x17;
 
-    cmd[2] |= index & 0x3;
+    cmd[2] |= (timestamp_index as u8) & 0x3;
     cmd
 }
 

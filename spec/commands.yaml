@@ -643,17 +643,14 @@ categories:
         opcode: 521
         description: Defines if the RX timeout should be stopped on Syncword/Header detection or on Preamble detection
         parameters:
-        - name: stop_timeout
+        - name: stop_on_preamble
           bit_width: 1
           byte_positions:
           - - 2
             - '0'
-          description: Timeout stop condition
+          description: Timeout stop on preamble detection instead of syncword/header valid
           optional: false
           default: 0
-          enum:
-            STOP_ON_SYNCWORD_HEADER: 0
-            STOP_ON_PREAMBLE: 1
       ResetRxStats:
         opcode: 522
         parameters: []
@@ -715,9 +712,9 @@ categories:
           description: Test mode selection
           optional: false
           enum:
-            NORMAL_TX: 0
-            INFINITE_PREAMBLE: 1
-            CONTINUOUS_WAVE: 2
+            PACKET: 0
+            PREAMBLE: 1
+            TONE: 2
             PRBS9: 3
       SelPA:
         opcode: 527
@@ -734,6 +731,30 @@ categories:
           enum:
             LF_PA: 0
             HF_PA: 1
+      SetRxDutyCyle:
+        opcode: 528
+        description: Start reception every cycle_time and listen for rx_max_time
+        parameters:
+        - name: rx_max_time
+          bit_width: 24
+          byte_positions: [[2, '7:0'], [3, '7:0'], [4, '7:0']]
+          description: Max Listen time
+          optional: false
+        - name: cycle_time
+          bit_width: 24
+          byte_positions: [[5, '7:0'], [6, '7:0'], [7, '7:0']]
+          description: Cycle time (period of RX in HF tick)
+          optional: false
+        - name: use_lora_cad
+          bit_width: 1
+          byte_positions: [[8, '4']]
+          description: Perform CAD instead of RX. Valid only for LoRa packet
+          optional: false
+        - name: dram_ret
+          bit_width: 3
+          byte_positions: [[8, '2:0']]
+          description: Bit mask for DRAM to keep in retention
+          optional: false
       SetAutoRxTx:
         opcode: 529
         description: Activate or deactivate the auto TX/auto RX mode. In auto RX mode, chip automatically goes from TX to
@@ -756,7 +777,7 @@ categories:
           enum:
             DISABLE: 0
             ALWAYS: 1
-            VALID: 2
+            RX_OK: 2
         - name: timeout
           bit_width: 24
           byte_positions:
@@ -837,14 +858,18 @@ categories:
         opcode: 534
         description: Sets the source event for time-stamping different radio events. 3 sources can be configured in parallel
         parameters:
-        - name: index
+        - name: timestamp_index
           bit_width: 2
           byte_positions:
           - - 2
             - '5:4'
           description: Index of the source to configure (0-2)
           optional: false
-        - name: source
+          enum:
+            TS0 : 0
+            TS1 : 1
+            TS2 : 2
+        - name: timestamp_source
           bit_width: 4
           byte_positions:
           - - 2
@@ -862,13 +887,17 @@ categories:
         description: Get the delay in HF clk tick between the event and the SPI NSS falling edge of the request. Will not
           return a correct value if the event occurred before a sleep period
         parameters:
-        - name: index
+        - name: timestamp_index
           bit_width: 2
           byte_positions:
           - - 2
             - '1:0'
           description: Index of the timestamp source (0-2)
           optional: false
+          enum:
+            TS0 : 0
+            TS1 : 1
+            TS2 : 2
         status_fields:
         - name: timestamp
           bit_width: 32
