@@ -82,7 +82,6 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     O: OutputPin, SPI: SpiBus<u8>, M: BusyPin
 {
     /// Read status and interrupt from the chip
-    #[doc(alias = "system")]
     pub async fn get_status(&mut self) -> Result<(Status,Intr), Lr2021Error> {
         let req = get_status_req();
         let mut rsp = StatusRsp::new();
@@ -91,7 +90,6 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Read status and interrupt from the chip
-    #[doc(alias = "system")]
     pub async fn get_errors(&mut self) -> Result<ErrorsRsp, Lr2021Error> {
         let req = get_errors_req();
         let mut rsp = ErrorsRsp::new();
@@ -100,7 +98,6 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Read status and interrupt from the chip
-    #[doc(alias = "system")]
     pub async fn get_version(&mut self) -> Result<VersionRsp, Lr2021Error> {
         let req = get_version_req();
         let mut rsp = VersionRsp::new();
@@ -109,7 +106,6 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Read interrupt from the chip and clear them all
-    #[doc(alias = "system")]
     pub async fn get_and_clear_irq(&mut self) -> Result<Intr, Lr2021Error> {
         let req = get_and_clear_irq_req();
         let mut rsp = StatusRsp::new();
@@ -118,7 +114,6 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Set the RF channel (in Hz)
-    #[doc(alias = "system")]
     pub async fn clear_irqs(&mut self, intr: Intr) -> Result<(), Lr2021Error> {
         let req = clear_irq_cmd(intr.value());
         self.cmd_wr(&req).await
@@ -126,7 +121,6 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
 
     /// Run calibration on up to 3 frequencies on 16b (MSB encode RX Path)
     /// If none, use current frequency
-    #[doc(alias = "system")]
     pub async fn calib_fe(&mut self, freqs_4m: &[u16]) -> Result<(), Lr2021Error> {
         let f0 = freqs_4m.first().copied().unwrap_or(0);
         let f1 = freqs_4m.get(1).copied().unwrap_or(0);
@@ -137,7 +131,6 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Set Tx power and ramp time
-    #[doc(alias = "system")]
     pub async fn set_chip_mode(&mut self, chip_mode: ChipMode) -> Result<(), Lr2021Error> {
         match chip_mode {
             ChipMode::DeepSleep      => self.cmd_wr(&set_sleep_cmd(false, 0)).await,
@@ -152,7 +145,6 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Configure a pin as IRQ and enable interrupts for this pin
-    #[doc(alias = "system")]
     pub async fn set_dio_function(&mut self, dio: DioNum, func: DioFunc, pull_drive: PullDrive) -> Result<(), Lr2021Error> {
         let req = set_dio_function_cmd(dio, func, pull_drive);
         self.cmd_wr(&req).await
@@ -160,14 +152,12 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
 
     /// Configure a pin as An RF Switch
     /// Each args flags when the IO should be high
-    #[doc(alias = "system")]
     pub async fn set_dio_rf_switch(&mut self, dio_num: DioNum, tx_hf: bool, rx_hf: bool, tx_lf: bool, rx_lf: bool, standby: bool) -> Result<(), Lr2021Error> {
         let req = set_dio_rf_switch_config_cmd(dio_num, tx_hf, rx_hf, tx_lf, rx_lf, standby);
         self.cmd_wr(&req).await
     }
 
     /// Configure a pin as IRQ and enable interrupts for this pin
-    #[doc(alias = "system")]
     pub async fn set_dio_irq(&mut self, dio: DioNum, intr_en: Intr) -> Result<(), Lr2021Error> {
         let sleep_pull = if dio==DioNum::Dio5 || dio==DioNum::Dio6 {PullDrive::PullAuto} else {PullDrive::PullUp};
         let req = set_dio_function_cmd(dio, DioFunc::Irq, sleep_pull);
@@ -178,14 +168,12 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
 
     /// Write data to the TX FIFO
     /// Check number of bytes available with get_tx_fifo_lvl()
-    #[doc(alias = "system")]
     pub async fn wr_tx_fifo_from(&mut self, buffer: &[u8]) -> Result<(), Lr2021Error> {
         self.cmd_data_wr(&[0,2], buffer).await
     }
 
     /// Write data to the TX FIFO
     /// Check number of bytes available with get_tx_fifo_lvl()
-    #[doc(alias = "system")]
     pub async fn wr_tx_fifo(&mut self, len: usize) -> Result<(), Lr2021Error> {
         self.cmd_wr_begin(&[0,2]).await?;
         self.spi
@@ -195,13 +183,11 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Clear TX Fifo
-    #[doc(alias = "system")]
     pub async fn clear_tx_fifo(&mut self) -> Result<(), Lr2021Error> {
         self.cmd_wr(&clear_tx_fifo_cmd()).await
     }
 
     /// Return number of byte in TX FIFO
-    #[doc(alias = "system")]
     pub async fn get_tx_fifo_lvl(&mut self) -> Result<u16, Lr2021Error> {
         let req = get_tx_fifo_level_req();
         let mut rsp = TxFifoLevelRsp::new();
@@ -210,13 +196,11 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Read data from the RX FIFO
-    #[doc(alias = "system")]
     pub async fn rd_rx_fifo_to(&mut self, buffer: &mut[u8]) -> Result<(), Lr2021Error> {
         self.cmd_data_rw(&[0,1], buffer).await
     }
 
     /// Read data from the RX FIFO to the local buffer
-    #[doc(alias = "system")]
     pub async fn rd_rx_fifo(&mut self, len: usize) -> Result<(), Lr2021Error> {
         self.cmd_wr_begin(&[0,1]).await?;
         self.spi
@@ -226,7 +210,6 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Return number of byte in RX FIFO
-    #[doc(alias = "system")]
     pub async fn get_rx_fifo_lvl(&mut self) -> Result<u16, Lr2021Error> {
         let req = get_rx_fifo_level_req();
         let mut rsp = RxFifoLevelRsp::new();
@@ -235,13 +218,11 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Clear RX Fifo
-    #[doc(alias = "system")]
     pub async fn clear_rx_fifo(&mut self) -> Result<(), Lr2021Error> {
         self.cmd_wr(&clear_rx_fifo_cmd()).await
     }
 
     /// Load a patch in ram
-    #[doc(alias = "system")]
     pub async fn load_pram(&mut self, patch: &[u8]) -> Result<(), Lr2021Error> {
         let mut addr = PRAM_PLD_ADDR;
         for patch_block in patch.chunks(32) {
@@ -259,7 +240,6 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Return type/version of the Patch Ram if loaded. None if no Patch Ram available
-    #[doc(alias = "system")]
     pub async fn get_pram_info(&mut self) -> Result<Option<(u8,u8)>, Lr2021Error> {
         // Check the Magic Word has been written, indicating a PAM was loaded
         let pram_mw = self.rd_reg(PRAM_MW_ADDR).await?;
@@ -274,7 +254,6 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Read a register value
-    #[doc(alias = "system")]
     pub async fn rd_reg(&mut self, addr: u32) -> Result<u32, Lr2021Error> {
         let req = read_reg_mem32_req(addr, 1);
         let mut rsp = ReadRegMem32Rsp::new();
@@ -283,7 +262,6 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Read nb32 qword (max 40) from memory and save them inside local buffer
-    #[doc(alias = "system")]
     pub async fn rd_mem(&mut self, addr: u32, nb32: u8) -> Result<(), Lr2021Error> {
         if nb32 > 40 {
             return Err(Lr2021Error::CmdErr);
@@ -302,14 +280,12 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Write a register value
-    #[doc(alias = "system")]
     pub async fn wr_reg(&mut self, addr: u32, value: u32) -> Result<(), Lr2021Error> {
         let req = write_reg_mem32_cmd(addr, value);
         self.cmd_wr(&req).await
     }
 
     /// Write a field value
-    #[doc(alias = "system")]
     pub async fn wr_field(&mut self, addr: u32, value: u32, pos: u8, width: u8) -> Result<(), Lr2021Error> {
         let mask =
             if width >= 32 {0xFFFFFFFF}

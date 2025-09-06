@@ -74,14 +74,12 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
 {
 
     /// Set Modulation parameters: raw bitrate, coding rate and pulse shaping
-    #[doc(alias = "flrc")]
     pub async fn set_flrc_modulation(&mut self, bitrate: FlrcBitrate, cr: FlrcCr, pulse_shape: PulseShape) -> Result<(), Lr2021Error> {
         let req = set_flrc_modulation_params_cmd(bitrate, cr, pulse_shape);
         self.cmd_wr(&req).await
     }
 
     /// Set FLRC packet parameters: preamble, syncword, header implicit/explicit, CRC and packet length (max 511)
-    #[doc(alias = "flrc")]
     pub async fn set_flrc_packet(&mut self, params: &FlrcPacketParams) -> Result<(), Lr2021Error> {
         let req = set_flrc_packet_params_cmd(
             params.agc_pbl_len,
@@ -95,7 +93,6 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Configure one of the three possible syncword
-    #[doc(alias = "flrc")]
     pub async fn set_flrc_syncword(&mut self, sw_num: u8, syncword: u32, is_16b: bool) -> Result<(), Lr2021Error> {
         let sw = if is_16b {syncword << 16} else {syncword};
         let req = set_flrc_syncword_cmd(sw_num, sw);
@@ -104,7 +101,6 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Return length of last packet received
-    #[doc(alias = "flrc")]
     pub async fn get_flrc_packet_status(&mut self) -> Result<FlrcPacketStatusRsp, Lr2021Error> {
         let req = get_flrc_packet_status_req();
         let mut rsp = FlrcPacketStatusRsp::new();
@@ -113,7 +109,6 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Return basic RX stats
-    #[doc(alias = "flrc")]
     pub async fn get_flrc_rx_stats(&mut self) -> Result<FlrcRxStatsRsp, Lr2021Error> {
         let req = get_flrc_rx_stats_req();
         let mut rsp = FlrcRxStatsRsp::new();
@@ -122,7 +117,6 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Return advanced RX stats
-    #[doc(alias = "flrc")]
     pub async fn get_flrc_rx_stats_adv(&mut self) -> Result<FlrcRxStatsRspAdv, Lr2021Error> {
         let req = get_flrc_rx_stats_req();
         let mut rsp = FlrcRxStatsRspAdv::new();

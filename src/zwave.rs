@@ -266,7 +266,6 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
 {
 
     /// Set ZWave packet parameters: preamble, syncword, header implicit/explicit, CRC and packet length (max 511)
-    #[doc(alias = "zwave")]
     pub async fn set_zwave_packet(&mut self, params: &ZwavePacketParams) -> Result<(), Lr2021Error> {
         let req = set_zwave_params_cmd(
             params.mode,
@@ -280,21 +279,18 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Sets the zwave Home ID, used as address filter in RX
-    #[doc(alias = "zwave")]
     pub async fn set_zwave_home_id(&mut self, id: u32) -> Result<(), Lr2021Error> {
         let req = set_zwave_home_id_filtering_cmd(id);
         self.cmd_wr(&req).await
     }
 
     /// Sets the zwave Beam frame filtering
-    #[doc(alias = "zwave")]
     pub async fn set_zwave_beam_filt(&mut self, beam_tag: u8, addr_len: AddrLen, node_id: u16, id_hash: u8) -> Result<(), Lr2021Error> {
         let req = set_zwave_beam_filtering_cmd(beam_tag, addr_len, node_id, id_hash);
         self.cmd_wr(&req).await
     }
 
     /// Configure scan: number of active channel, their mode and frequency
-    #[doc(alias = "zwave")]
     pub async fn set_zwave_scan_config(&mut self, cfg: &ZwaveScanCfg) -> Result<(), Lr2021Error> {
         let req = [0x02, 0x9C,
             cfg.cmd_nb_ch(),
@@ -335,14 +331,12 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Start the ZWave Scan: it will alternate between up to 4 channels to find an incoming packet
-    #[doc(alias = "zwave")]
     pub async fn start_zwave_scan(&mut self) -> Result<(), Lr2021Error> {
         let req = set_zwave_scan_cmd();
         self.cmd_wr(&req).await
     }
 
     /// Return length of last packet received
-    #[doc(alias = "zwave")]
     pub async fn get_zwave_packet_status(&mut self) -> Result<ZwavePacketStatusRsp, Lr2021Error> {
         let req = get_zwave_packet_status_req();
         let mut rsp = ZwavePacketStatusRsp::new();
@@ -351,7 +345,6 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Return basic RX stats
-    #[doc(alias = "zwave")]
     pub async fn get_zwave_rx_stats(&mut self) -> Result<ZwaveRxStatsRsp, Lr2021Error> {
         let req = get_zwave_rx_stats_req();
         let mut rsp = ZwaveRxStatsRsp::new();
@@ -360,7 +353,6 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Return advanced RX stats
-    #[doc(alias = "zwave")]
     pub async fn get_zwave_rx_stats_adv(&mut self) -> Result<ZwaveRxStatsRspAdv, Lr2021Error> {
         let req = get_zwave_rx_stats_req();
         let mut rsp = ZwaveRxStatsRspAdv::new();
