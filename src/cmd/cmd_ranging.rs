@@ -131,7 +131,7 @@ impl AsMut<[u8]> for RangingResultRsp {
 
 /// Response for GetRangingExtResult command
 #[derive(Default)]
-pub struct RangingExtResultRsp([u8; 10]);
+pub struct RangingExtResultRsp([u8; 9]);
 
 impl RangingExtResultRsp {
     /// Create a new response buffer
@@ -163,11 +163,6 @@ impl RangingExtResultRsp {
             ((self.0[7] as u32) << 8) |
             ((self.0[6] as u32) << 16);
         raw as i32 - if (self.0[6] & 0x80) != 0 {1<<24} else {0}
-    }
-
-    /// RSSI value for second ranging measurement
-    pub fn rssi2(&self) -> u8 {
-        self.0[9]
     }
 }
 

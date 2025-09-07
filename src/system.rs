@@ -44,6 +44,7 @@
 //! ### Register and Memory Access
 //! - [`rd_reg`](Lr2021::rd_reg) - Read a 32-bit register value
 //! - [`wr_reg`](Lr2021::wr_reg) - Write a 32-bit register value
+//! - [`wr_reg_mask`](Lr2021::wr_reg_mask) - Write a 32-bit register value with a mask
 //! - [`wr_field`](Lr2021::wr_field) - Write to specific bit field in a register
 //! - [`rd_mem`](Lr2021::rd_mem) - Read multiple 32-bit words from memory to internal buffer
 
@@ -236,7 +237,8 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
             self.cmd_buf_wr(len).await?;
             addr += 128;
         }
-        Ok(())
+        // Execute patch
+        self.cmd_wr(&[0x01, 0x2D, 0, 0]).await
     }
 
     /// Return type/version of the Patch Ram if loaded. None if no Patch Ram available
@@ -282,6 +284,12 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     /// Write a register value
     pub async fn wr_reg(&mut self, addr: u32, value: u32) -> Result<(), Lr2021Error> {
         let req = write_reg_mem32_cmd(addr, value);
+        self.cmd_wr(&req).await
+    }
+
+    /// Write a register value with a mask (only bit where mask is high are changed)
+    pub async fn wr_reg_mask(&mut self, addr: u32, mask: u32, value: u32) -> Result<(), Lr2021Error> {
+        let req = write_reg_mem_mask32_cmd(addr, mask, value);
         self.cmd_wr(&req).await
     }
 

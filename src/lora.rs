@@ -47,6 +47,7 @@
 //! - [`get_lora_packet_status`](Lr2021::get_lora_packet_status) - Get basic packet status information
 //! - [`get_lora_packet_status_adv`](Lr2021::get_lora_packet_status_adv) - Get advanced packet status with SNR and frequency offset
 //! - [`get_lora_rx_stats`](Lr2021::get_lora_rx_stats) - Get reception statistics
+//! - [`get_lora_fei`](Lr2021::get_lora_fei) - Return last frequency estimation
 //!
 //! ### Channel Activity Detection (CAD)
 //! - [`set_lora_cad_params`](Lr2021::set_lora_cad_params) - Configure CAD parameters for listen-before-talk
@@ -63,11 +64,12 @@
 //! - [`set_ranging_req_addr`](Lr2021::set_ranging_req_addr) - Set request address for ranging
 //! - [`set_ranging_txrx_delay`](Lr2021::set_ranging_txrx_delay) - Set ranging calibration delay
 //! - [`set_ranging_params`](Lr2021::set_ranging_params) - Configure ranging parameters (extended/spy mode)
-//! - [`get_ranging_status`](Lr2021::get_ranging_status) - Get ranging exchange status
 //! - [`get_ranging_result`](Lr2021::get_ranging_result) - Get basic ranging results
 //! - [`get_ranging_ext_result`](Lr2021::get_ranging_ext_result) - Get extended ranging results
 //! - [`get_ranging_gain`](Lr2021::get_ranging_gain) - Get ranging gain steps (debug)
 //! - [`get_ranging_stats`](Lr2021::get_ranging_stats) - Get ranging statistics
+//! - [`get_ranging_rssi_offset`](Lr2021::get_ranging_rssi_offset) - Return a correction offset on ranging RSSI
+
 //!
 //! ### Timing Synchronization
 //! - [`set_lora_timing_sync`](Lr2021::set_lora_timing_sync) - Configure timing synchronization mode
@@ -86,6 +88,18 @@ use super::{
     BusyPin, Lr2021, Lr2021Error
 };
 
+// Recommneded delay for ranging
+// One line per bandwidth: 1000, 812, 500, 406, 250, 203, 125
+const RANGING_DELAY : [u32; 56] = [
+    21711, 21729, 21733, 21715, 21669, 21577, 21391, 21016,
+    25547, 25596, 25599, 25652, 25683, 25765, 25918, 26283,
+    20616, 20607, 20567, 20480, 20307, 19959, 19258, 17860,
+    24460, 24548, 24547, 24624, 24936, 25264, 26084, 27689,
+    20149, 20141, 20100, 20013, 19837, 19486, 18787, 17386,
+    23975, 24087, 24089, 24191, 24356, 24806, 25560, 27153,
+    19688, 19649, 19560, 19387, 19043, 18350, 16967, 14191,
+];
+
 #[derive(Debug, Clone, Copy)]
 pub struct SidedetCfg(u8);
 impl SidedetCfg {
@@ -101,29 +115,6 @@ impl SidedetCfg {
     }
 }
 
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-#[cfg_attr(feature = "defmt", derive(defmt::Format))]
-/// Flag status of last exchange
-pub enum RangingStatus {
-    Invalid = 0, Standard = 1, Extended = 3
-}
-
-impl RangingStatus {
-    pub fn is_valid(&self) -> bool {
-        *self!=RangingStatus::Invalid
-    }
-}
-
-impl From<u8> for RangingStatus {
-    fn from(value: u8) -> Self {
-        match value & 3 {
-            1 => RangingStatus::Standard,
-            3 => RangingStatus::Extended,
-            _ => RangingStatus::Invalid,
-        }
-    }
-}
 
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
@@ -300,6 +291,26 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
         self.cmd_wr(&req).await
    }
 
+    /// Get the base delay for ranging depdending on bandwidth and SF
+    /// Delay was calibrated only for bandwidth 125kHz and higher.
+    /// For lower bandwidth (not recommended to use in ranging) a crude estimation is provided
+    /// Note: the board itself will introduce some offset which should not be dependent on SF
+    /// but might vary with bandwidth.
+    pub fn get_ranging_base_delay(&self, bw: LoraBw, sf: Sf) -> u32 {
+        let offset = match bw {
+            LoraBw::Bw1000 =>  0,
+            LoraBw::Bw800  =>  8,
+            LoraBw::Bw500  => 16,
+            LoraBw::Bw400  => 24,
+            LoraBw::Bw250  => 32,
+            LoraBw::Bw200  => 40,
+            LoraBw::Bw125  => 48,
+            _              => 56
+        };
+        let idx = offset + (sf as usize - 5);
+        RANGING_DELAY.get(idx).copied().unwrap_or(18000 - (5600 >> (12 - sf as u32)))
+   }
+
     /// Set the ranging parameters: Extended/Spy and number of symbols
     /// Extended mode initiate a second exchange with an inverted direction to improve accuracy and provide some relative speed indication
     /// Spy mode allows to estimate distance between two device while they are performing a ranging exchange.
@@ -308,12 +319,6 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
          let req = set_ranging_params_cmd(extended, spy_mode, nb_symbols);
         self.cmd_wr(&req).await
    }
-
-    /// Return info if last ranging exchange was valid
-    pub async fn get_ranging_status(&mut self) -> Result<RangingStatus, Lr2021Error> {
-        let val = (self.rd_reg(0xF30B74).await? >> 5) as u8;
-        Ok(val.into())
-    }
 
     /// Return the result of last ranging exchange (round-trip time of flight and RSSI)
     /// The distance is provided
@@ -348,6 +353,31 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
         let mut rsp = RangingStatsRsp::new();
         self.cmd_rd(&req, rsp.as_mut()).await?;
         Ok(rsp)
+    }
+
+    /// Return a correction offset on ranging RSSI
+    /// Read the value after any change to the gain table
+    pub async fn get_ranging_rssi_offset(&mut self) -> Result<i16, Lr2021Error> {
+        let gmax = (self.rd_reg(0xF301A4).await? & 0x3FF) as i16; // u10.2b
+        let pwr_offset = (self.rd_reg(0xF30128).await? >> 6) & 0x3F;
+        let pwr_offset = pwr_offset as i16 - if (pwr_offset&0x20) !=0 {64} else {0}; // s6.1b
+        let offset = 104 + ((gmax + 2*pwr_offset + 2) >> 2);
+        Ok(-offset)
+    }
+
+    /// Return current frequency estimation
+    /// Unit is bandwidth / 2^20 (BW1000 -> 0.95Hz)
+    /// Note: this is a direct register access: it can be invalidated at any moment,
+    /// can change when read during a packet reception and might not be valid
+    /// if the received packet was not demodualted correctly
+    /// Use `get_lora_packet_status_adv` to retrieve the value saved by firmware
+    pub async fn get_lora_fei(&mut self) -> Result<i32, Lr2021Error> {
+        let reg : u32 = self.rd_reg(0xF30A8C).await?;
+        let mut fei : i32 = (reg & 0xFFFFF) as i32;
+        if (fei & 0x8_0000) != 0 {
+            fei -= 0x10_0000;
+        }
+        Ok(fei)
     }
 
     /// Set Lora in Timing Synchronisation mode

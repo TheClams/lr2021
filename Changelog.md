@@ -1,5 +1,20 @@
 # Change Log
 
+## [0.7.0] - 2025-09-07
+
+### Added
+  - LoRa: add API to retrieve FEI
+  - Ranging:
+    * add method to get the base TXRX Delay depending on bandwidth and SF
+    * add set_rf_ranging to ensure constant delay whatever the RF selected
+    * add method to retrieve the ranging RSSI correction offset
+  - Ranging:
+
+### Fixed
+  - Fix command value of SetRxDutyCycle
+  - Ranging: rssi2 has been removed (always null)
+  - Patch RAM is now properly enabled after being loaded (to be tested)
+
 ## [0.6.0] - 2025-09-03
 
 ### Changed

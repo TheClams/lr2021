@@ -3130,13 +3130,13 @@ categories:
           description: Second ranging measurement value
           signed: true
           optional: false
-        - name: rssi2
-          bit_width: 8
-          byte_positions:
-          - - 9
-            - '7:0'
-          description: RSSI value for second ranging measurement
-          optional: false
+        # - name: rssi2
+        #   bit_width: 8
+        #   byte_positions:
+        #   - - 9
+        #     - '7:0'
+        #   description: RSSI value for second ranging measurement
+        #   optional: false
       GetRangingGainStep:
         opcode: -1
         parameters: []

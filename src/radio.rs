@@ -70,6 +70,13 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
         self.cmd_wr(&req).await
     }
 
+    /// Set the RF channel (in Hz) for ranging operation
+    /// This ensure the channel are aligned to multiple of ~122Hz
+    pub async fn set_rf_ranging(&mut self, freq: u32) -> Result<(), Lr2021Error> {
+        self.set_rf(freq).await?;
+        self.wr_reg_mask(0xF40144, 0x7F, 0).await
+    }
+
     /// Set the RX Path (LF/HF)
     pub async fn set_rx_path(&mut self, rx_path: RxPath, rx_boost: RxBoost) -> Result<(), Lr2021Error> {
         let req = set_rx_path_adv_cmd(rx_path, rx_boost);
@@ -107,6 +114,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Set chip in TX mode. Set timeout to 0 or to a value longer than the packet duration.
+    /// Timeout is given in LF clock step (1/32.768kHz ~ 30.5us)
     pub async fn set_tx(&mut self, tx_timeout: u32) -> Result<(), Lr2021Error> {
         let req = set_tx_adv_cmd(tx_timeout);
         self.cmd_wr(&req).await
@@ -120,6 +128,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
 
     /// Set chip in RX mode. A timeout equal to 0 means a single reception, the value 0xFFFFFF is for continuous RX (i.e. always restart reception)
     /// and any other value, the chip will go back to its fallback mode if a reception does not occur before the timeout is elapsed
+    /// Timeout is given in LF clock step (1/32.768kHz ~ 30.5us)
     pub async fn set_rx(&mut self, rx_timeout: u32, wait_ready: bool) -> Result<(), Lr2021Error> {
         let req = set_rx_adv_cmd(rx_timeout);
         self.cmd_wr(&req).await?;
