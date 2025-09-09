@@ -69,6 +69,8 @@
 //! - [`get_ranging_gain`](Lr2021::get_ranging_gain) - Get ranging gain steps (debug)
 //! - [`get_ranging_stats`](Lr2021::get_ranging_stats) - Get ranging statistics
 //! - [`get_ranging_rssi_offset`](Lr2021::get_ranging_rssi_offset) - Return a correction offset on ranging RSSI
+//! - [`patch_ranging_rf`](Lr2021::patch_ranging_rf) - Patch the RF setting for ranging operation
+
 
 //!
 //! ### Timing Synchronization
@@ -271,6 +273,13 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
         self.cmd_wr(&req).await
     }
 
+    /// Patch the RF setting for ranging operation
+    /// This ensure the channel are aligned to multiple of ~122Hz
+    /// MUST be called after a `set_packet_type(PacketType::Ranging)`
+    pub async fn patch_ranging_rf(&mut self) -> Result<(), Lr2021Error> {
+        self.wr_reg_mask(0xF40144, 0x7F, 0).await
+    }
+
     /// Set the device address for ranging operation
     /// The device will answer to ranging request only if the request address matches the device address
     /// The length allows to define how many bytes from the address are checked (starting from LSB)
@@ -309,7 +318,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
         };
         let idx = offset + (sf as usize - 5);
         RANGING_DELAY.get(idx).copied().unwrap_or(18000 - (5600 >> (12 - sf as u32)))
-   }
+    }
 
     /// Set the ranging parameters: Extended/Spy and number of symbols
     /// Extended mode initiate a second exchange with an inverted direction to improve accuracy and provide some relative speed indication

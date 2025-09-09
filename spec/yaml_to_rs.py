@@ -36,6 +36,7 @@ enum_remap : dict[str,str] = {
     'Sd1Ldro' : 'Ldro',
     'Sd2Ldro' : 'Ldro',
     'Sd3Ldro' : 'Ldro',
+    'TriggerStop'  : 'CaptureTrigger',
 }
 
 @dataclass
@@ -153,6 +154,8 @@ def get_rust_type(field: Field) -> str:
     """Get appropriate Rust type for a field"""
     if field.enum:
         t = snake_to_pascal(field.name)
+        if t == 'TriggerStart':
+            t = 'CaptureTrigger'
         return enum_remap.get(t,t)
     elif field.bit_width == 0:
         return "&[u8]"  # Variable length
@@ -172,6 +175,8 @@ def gen_enum(field: Field) -> str:
     if not field.enum:
         return ''
     enum_name = snake_to_pascal(field.name)
+    if enum_name == 'TriggerStart':
+        enum_name = 'CaptureTrigger'
     lines = ["",f"/// {field.description}"]
     lines.append("#[derive(Debug, Clone, Copy, PartialEq, Eq)]")
     lines.append("#[cfg_attr(feature = \"defmt\", derive(defmt::Format))]")
@@ -511,7 +516,7 @@ def gen_file(category: str, commands: list[Command], output_dir: Path) -> None:
         lines.append("use crate::status::{Status,Intr};")
     elif has_rsp:
         lines.append("use crate::status::Status;")
-    if category in ['ble', 'ook', 'zigbee', 'zwave', 'wisun', 'wmbus']:
+    if category in ['ble', 'ook', 'zigbee', 'zwave', 'wisun', 'wmbus', 'raw']:
         lines.append("use super::RxBw;")
     if category in ['flrc', 'bpsk', 'ook']:
         lines.append("use super::PulseShape;")

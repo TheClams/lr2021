@@ -102,6 +102,7 @@ pub mod lrfhss;
 pub mod wmbus;
 pub mod wisun;
 pub mod bpsk_tx;
+pub mod raw;
 
 use core::marker::PhantomData;
 

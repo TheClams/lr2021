@@ -9,6 +9,7 @@
 //!
 //! ### RF Configuration
 //! - [`set_rf`](Lr2021::set_rf) - Set RF frequency channel in Hz
+//! - [`set_rf_ranging`](Lr2021::set_rf_ranging) - Set the RF channel (in Hz) for ranging operation
 //! - [`set_rx_path`](Lr2021::set_rx_path) - Configure RX path (LF/HF) with boost settings
 //! - [`set_packet_type`](Lr2021::set_packet_type) - Set packet type (LoRa, FSK, BLE, Z-Wave, etc.)
 //!
@@ -71,7 +72,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Set the RF channel (in Hz) for ranging operation
-    /// This ensure the channel are aligned to multiple of ~122Hz
+    /// Call only after set_packet_type(Ranging)
     pub async fn set_rf_ranging(&mut self, freq: u32) -> Result<(), Lr2021Error> {
         self.set_rf(freq).await?;
         self.wr_reg_mask(0xF40144, 0x7F, 0).await

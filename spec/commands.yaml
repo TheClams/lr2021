@@ -3254,6 +3254,203 @@ categories:
           optional: false
   raw:
     commands:
+      SetRawIqCaptureParams:
+        opcode: 0x0290
+        description: "Sets the raw IQ capture parameters. IQ capture can be done either exclusively using the packet type RAW, or in parallel to the use of a demodulator when in any packet type"
+        parameters:
+          - name: rx_bw
+            bit_width: 8
+            byte_positions: [[2, "7:0"]]
+            description: "RX bandwidth. If set to auto, the bandwidth is not modified"
+            optional: false
+            enum:
+              BW_AUTO: 255
+              BW_3076: 0
+              BW_2857: 64
+              BW_2666: 128
+              BW_2222: 192
+              BW_1333: 136
+              BW_1111: 200
+              BW_888: 144
+              BW_769: 24
+              BW_740: 208
+              BW_714: 88
+              BW_666: 152
+              BW_615: 32
+              BW_571: 96
+              BW_555: 216
+              BW_533: 160
+              BW_512: 17
+              BW_476: 81
+              BW_444: 224
+              BW_384: 25
+              BW_370: 209
+              BW_357: 89
+              BW_333: 153
+              BW_307: 33
+              BW_285: 97
+              BW_277: 217
+              BW_266: 161
+              BW_256: 18
+              BW_238: 82
+              BW_222: 225
+              BW_192: 26
+              BW_185: 210
+              BW_178: 90
+              BW_166: 154
+              BW_153: 34
+              BW_142: 98
+              BW_138: 218
+              BW_133: 162
+              BW_128: 19
+              BW_119: 83
+              BW_111: 226
+              BW_96: 27
+              BW_92: 211
+              BW_89: 91
+              BW_83: 155
+              BW_76: 35
+              BW_71: 99
+              BW_69: 219
+              BW_66: 163
+              BW_64: 20
+              BW_59: 84
+              BW_55: 227
+              BW_48: 28
+              BW_46: 212
+              BW_44: 92
+              BW_41: 156
+              BW_38: 36
+              BW_35: 100
+              BW_34: 220
+              BW_33: 164
+              BW_32: 21
+              BW_29: 85
+              BW_27: 228
+              BW_24: 29
+              BW_23: 213
+              BW_22: 93
+              BW_20: 157
+              BW_19: 37
+              BW_17: 101
+              BW_16: 165
+              BW_14: 86
+              BW_13: 229
+              BW_12: 30
+              BW_11: 94
+              BW_10: 158
+              BW_9_6: 38
+              BW_8_9: 102
+              BW_8_7: 222
+              BW_8_3: 166
+              BW_8: 23
+              BW_7_4: 87
+              BW_6_9: 230
+              BW_6: 31
+              BW_5_8: 215
+              BW_5_6: 95
+              BW_5_2: 159
+              BW_4_8: 39
+              BW_4_5: 103
+              BW_4_3: 223
+              BW_4_2: 167
+              BW_3_5: 231
+          - name: sample_rate
+            bit_width: 32
+            byte_positions: [[3, "7:0"], [4, "7:0"], [5, "7:0"], [6, "7:0"]]
+            description: "IQ sample rate in samples/s. Only valid for data_sel == 0 (SampleRateConverter). Otherwise IQ are captured at the native speed"
+            optional: false
+          - name: ram_sel
+            bit_width: 3
+            byte_positions: [[7, "7:5"]]
+            description: "Select which memory to use for ddmi capture"
+            optional: false
+            enum:
+              NONE: 0        # No RAM selected (only valid for FIFO, or NONE mode)
+              RAM1: 1          # RAM1 (4kB)
+              RAM1_2: 2        # RAM 1+2 (12kB)
+              RAM1_2_3: 3      # RAM 1+2+3 (20kB)
+              RAM2: 4          # RAM 2 (8kB)
+              RAM2_3: 5        # RAM 2+3 (16kB)
+              RAM3: 6          # RAM 3 (8kB)
+          - name: capture_mode
+            bit_width: 2
+            byte_positions: [[7, "4:3"]]
+            description: "IQ capture mode"
+            optional: false
+            enum:
+              NONE: 0     # IQ capture is disabled
+              FIFO: 1     # All IQ data are pushed into the RX FIFO. First I then Q. Format depends on data_sel
+              DDMI: 2     # Capture is stored in configured DDMI RAM (INTERNAL USE ONLY)
+          - name: capture_data_sel
+            bit_width: 3
+            byte_positions: [[7, "2:0"]]
+            description: "Digital front-end selection for IQ capture"
+            optional: false
+            enum:
+              SRC: 0
+              DAGC: 1
+              CHANNEL_FILTER: 2
+              DECIMATION: 3
+              MIXER: 4
+              INPUT: 5
+              SRC_GAIN: 6
+          - name: capture_delay_us
+            bit_width: 16
+            byte_positions: [[8, "7:0"], [9, "7:0"]]
+            description: "Time in microseconds from the point we are in rx to the point the capture start. Only valid in RAW packet type"
+            optional: true
+            default: 0
+            internal: false
+          - name: ddmi_sample_nb
+            bit_width: 16
+            byte_positions: [[10, "7:0"], [11, "7:0"]]
+            description: "The number of samples to acquire in ddmi mode. If 0, or too large, the default value for the selected ram is used"
+            optional: true
+            default: 0
+          - name: change_dma_arb_size
+            bit_width: 8
+            byte_positions: [[12, "7:0"]]
+            description: "If 0, do not change arbitration (kept at 1), otherwise change arbitration depending on sample size. Only used in fifo mode"
+            optional: true
+            default: 1
+
+      GetRawIqDdmiCnt:
+        opcode: 0x0291
+        description: "Gets the number of captured DDMI sample."
+        parameters: []
+        status_fields:
+          - name: wrapped
+            bit_width: 1
+            byte_positions: [[2, "7"]]
+            description: "High when wrapping occured during capture"
+            optional: false
+          - name: cnt
+            bit_width: 15
+            byte_positions: [[2, "6:0"], [3, "7:0"]]
+            description: "Number of captured IQ bytes for ddmi"
+            optional: false
+
+      GetRawIqDdmiData:
+        opcode: 0x0292
+        description: "Reads out num bytes starting at relative offset from the DDMI RAMs. Note: in case of 16bit IQ samples, the format is LITTLE ENDIAN"
+        parameters:
+          - name: offset
+            bit_width: 16
+            byte_positions: [[2, "7:0"], [3, "7:0"]]
+            description: "Relative offset from the DDMI RAMs"
+            optional: false
+          - name: num
+            bit_width: 8
+            byte_positions: [[4, "7:0"]]
+            description: "Number of bytes to read"
+            optional: false
+        status_fields:
+          - name: data
+            bit_width: 0  # Variable length
+            byte_positions: []
+            description: "Variable length data array containing the captured IQ bytes"
+            optional: false
       SetRawIqTxParams:
         opcode: 659
         description: 'Sets the parameters used for TX. Note: for mode = IQ, tx_sample_num is the number of IQ pairs, so the
@@ -3281,7 +3478,7 @@ categories:
             - '7:0'
           description: Sample rate in samples/s
           optional: false
-        - name: tx_mode
+        - name: tx_iq_mode
           bit_width: 2
           byte_positions:
           - - 8
@@ -3290,7 +3487,7 @@ categories:
           optional: false
           enum:
             IQ: 0
-            FREQUENCY: 1
+            FREQ: 1
             PHASE: 2
       SetRawIqTrigger:
         opcode: 660
@@ -3304,14 +3501,14 @@ categories:
           description: Trigger selection for the Raw IQ capture start
           optional: false
           enum:
-            SOFT_TRIGGER: 0
+            SOFT: 0
             RSSI: 1
-            MODEM_EXTERNAL: 2
-            PREAMBLE_DETECTION: 3
+            EXTERNAL: 2
+            DETECT: 3
             RX_DONE: 4
             SYNC_FOUND: 5
             HIC_IRQ_13: 6
-            RTC: 7
+            RTC3: 7
         - name: trigger_stop
           bit_width: 4
           byte_positions:

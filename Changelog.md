@@ -1,5 +1,13 @@
 # Change Log
 
+## [0.7.1] - 2025-09-07
+
+### Added
+  - API for Raw IQ TX/capture
+  - Add method to patch RF setting for ranging as this is needs to be done after set_packet_type
+
+### Changed
+
 ## [0.7.0] - 2025-09-07
 
 ### Added
