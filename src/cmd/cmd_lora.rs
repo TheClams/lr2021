@@ -4,7 +4,7 @@ use crate::status::Status;
 use super::cmd_system::DioNum;
 
 /// Spreading factor
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum Sf {
     Sf5 = 5,
@@ -39,6 +39,42 @@ pub enum LoraBw {
     Bw800 = 15,
 }
 
+impl LoraBw {
+    /// Return Bandwidth in Hz
+    pub fn to_hz(&self) -> u32 {
+        match self {
+            LoraBw::Bw1000 => 1000_000,
+            LoraBw::Bw800  =>  812_500,
+            LoraBw::Bw500  =>  500_000,
+            LoraBw::Bw400  =>  406_250,
+            LoraBw::Bw250  =>  250_000,
+            LoraBw::Bw200  =>  203_125,
+            LoraBw::Bw125  =>  125_000,
+            LoraBw::Bw100  =>  101_562,
+            LoraBw::Bw83   =>   83_333,
+            LoraBw::Bw62   =>   62_500,
+            LoraBw::Bw41   =>   41_666,
+            LoraBw::Bw31   =>   31_250,
+            LoraBw::Bw20   =>   20_833,
+            LoraBw::Bw15   =>   15_625,
+            LoraBw::Bw10   =>   10_416,
+            LoraBw::Bw7    =>    7_812,
+        }
+    }
+}
+
+impl PartialOrd for LoraBw {
+    fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for LoraBw {
+    fn cmp(&self, other: &Self) -> core::cmp::Ordering {
+        self.to_hz().cmp(&other.to_hz())
+    }
+}
+
 /// Coding rate
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
@@ -46,13 +82,40 @@ pub enum LoraCr {
     NoCoding = 0,
     Cr1Ham45Si = 1,
     Cr2Ham23Si = 2,
-    Cr3Ham75Si = 3,
+    Cr3Ham47Si = 3,
     Cr4Ham12Si = 4,
     Cr5Ham45Li = 5,
     Cr6Ham23Li = 6,
     Cr7Ham12Li = 7,
     Cr8Cc23 = 8,
     Cr9Cc12 = 9,
+}
+
+impl LoraCr {
+    /// Return if Code-rate uses long interleaving
+    pub fn is_li(&self) -> bool {
+        use LoraCr::*;
+        matches!(self, Cr5Ham45Li|Cr6Ham23Li|Cr7Ham12Li|Cr8Cc23|Cr9Cc12)
+    }
+    /// Return denominator for the coding rate, supposing a numerator equal to 4
+    pub fn denominator(&self) -> u8 {
+        match self {
+            LoraCr::NoCoding   => 4,
+            // Code rate 4/5
+            LoraCr::Cr1Ham45Si |
+            LoraCr::Cr5Ham45Li => 5,
+            // Code rate 2/3 -> 4/6
+            LoraCr::Cr2Ham23Si |
+            LoraCr::Cr6Ham23Li |
+            LoraCr::Cr8Cc23    => 6,
+            // Code rate 4/7
+            LoraCr::Cr3Ham47Si => 7,
+            // Code rate 1/2 -> 4/8
+            LoraCr::Cr4Ham12Si |
+            LoraCr::Cr7Ham12Li |
+            LoraCr::Cr9Cc12    => 8,
+        }
+    }
 }
 
 /// Low Data Rate Optimisation. Enable for high Spreading factor to increase tolerance to clock drift.

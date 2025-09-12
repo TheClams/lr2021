@@ -1,12 +1,17 @@
 # Change Log
 
-## [0.7.1] - 2025-09-07
+## [0.8.0] - 2025-09-07
 
 ### Added
   - API for Raw IQ TX/capture
-  - Add method to patch RF setting for ranging as this is needs to be done after set_packet_type
+  - Add method to patch RF setting for ranging as this needs to be done after set_packet_type
+  - Add LoRa API for hidden features: set_lora_freq_range and set_sidedet_halfbin
 
 ### Changed
+  - WMbus PktFormat renamed to WmbusFormat
+  - LoRa:
+    * use struct to define modulation and packet params
+    * SF and LoRaBw implements Ord (i.e. can use comparison operators)
 
 ## [0.7.0] - 2025-09-07
 

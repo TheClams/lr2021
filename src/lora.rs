@@ -10,27 +10,17 @@
 //!
 //! ```rust,no_run
 //! use lr2021::radio::PacketType;
-//! use lr2021::lora::{Sf, LoraBw, LoraCr, Ldro, HeaderType};
+//! use lr2021::lora::{Sf, LoraBw};
 //!
 //! // Set packet type to LoRa
 //! lr2021.set_packet_type(PacketType::Lora).await.expect("Setting packet type");
 //!
-//! // Configure LoRa modulation (SF5, BW1000, CR 4/5, LDRO off)
-//! lr2021.set_lora_modulation(
-//!     Sf::Sf5,                    // Spreading Factor 5
-//!     LoraBw::Bw1000,            // Bandwidth 1000 kHz
-//!     LoraCr::Cr1Ham45Si,        // Coding Rate 4/5
-//!     Ldro::Off                  // Low Data Rate Optimization off
-//! ).await.expect("Setting LoRa modulation");
+//! // Configure LoRa parameters: modulation & packet format (10 bytes with header and CRC)
+//! let modulation = LoraModulationParams::basic(Sf::Sf5, LoraBw::Bw1000);
+//! let packet_params = LoraPacketParams::basic(10, &modulation);
 //!
-//! // Configure packet parameters (8 symbols preamble, 10 byte payload, explicit header with CRC)
-//! lr2021.set_lora_packet(
-//!     8,                          // Preamble length (symbols)
-//!     10,                         // Payload length (bytes)
-//!     HeaderType::Explicit,       // Explicit header (includes payload length)
-//!     true,                       // CRC enabled
-//!     false                       // IQ not inverted
-//! ).await.expect("Setting packet parameters");
+//! lr2021.set_lora_modulation(&modulation).await.expect("Setting LoRa modulation");
+//! lr2021.set_lora_packet(&packet_params).await.expect("Setting packet parameters");
 //! ```
 //!
 //! ## Available Methods
@@ -56,6 +46,7 @@
 //! ### Advanced Features
 //! - [`comp_sx127x_en`](Lr2021::comp_sx127x_en) - Enable SX127x compatibility for SF6
 //! - [`set_lora_sidedet_cfg`](Lr2021::set_lora_sidedet_cfg) - Configure side-detector for multiple SF detection
+//! - [`set_lora_sidedet_halfbin`](Lr2021::set_lora_sidedet_halfbin) - Configure Side-Detector allowing multiple SF to be detected
 //! - [`set_lora_sidedet_syncword`](Lr2021::set_lora_sidedet_syncword) - Configure side-detector syncwords
 //! - [`set_lora_preamble_modulation`](Lr2021::set_lora_preamble_modulation) - Enable preamble phase modulation
 //!
@@ -90,6 +81,72 @@ use super::{
     BusyPin, Lr2021, Lr2021Error
 };
 
+#[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
+/// LoRa Modulation parameters: SF, Bandwidth, Code-rate, LDRO
+pub struct LoraModulationParams {
+    /// Spreading factor
+    pub sf: Sf,
+    /// Bandwidth
+    pub bw: LoraBw,
+    /// Coding Rate
+    pub cr: LoraCr,
+    /// Low Data-Rate Optimisation
+    pub ldro: Ldro,
+}
+
+impl LoraModulationParams {
+    /// Modulation with default coderate (4/5) and LDRO based on SF/BW
+    pub fn basic(sf: Sf, bw: LoraBw) -> Self {
+        let ldro_en = (sf==Sf::Sf12 && !matches!(bw,LoraBw::Bw1000|LoraBw::Bw500))
+                    || (sf==Sf::Sf11 && !matches!(bw,LoraBw::Bw1000|LoraBw::Bw500|LoraBw::Bw250) );
+        Self {
+            sf, bw,
+            cr: LoraCr::Cr1Ham45Si,
+            ldro: if ldro_en {Ldro::On} else {Ldro::Off},
+        }
+    }
+
+    /// Modulation with default coderate (4/5) and LDRO based on SF/BW
+    pub fn new(sf: Sf, bw: LoraBw, cr: LoraCr, ldro: Ldro) -> Self {
+        Self {sf, bw, cr, ldro}
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
+/// LoRa Modulation parameters: SF, Bandwidth, Code-rate, LDRO
+pub struct LoraPacketParams {
+    /// Preamble length (in symbol)
+    pub pbl_len: u16,
+    /// Payload length (in byte)
+    pub payload_len: u8,
+    /// Explicit or implicit header
+    pub header_type: HeaderType,
+    /// CRC Enable
+    pub crc_en: bool,
+    /// Chirp direction
+    pub invert_iq: bool,
+}
+
+impl LoraPacketParams {
+    /// Default Packet parameters (Explicit header with CRC and standard direction)
+    pub fn basic(payload_len: u8, modulation: &LoraModulationParams) -> Self {
+        Self {
+            pbl_len: if modulation.sf < Sf::Sf7 {12} else {8},
+            payload_len,
+            header_type: HeaderType::Explicit,
+            crc_en: true,
+            invert_iq: false
+        }
+    }
+
+    /// Modulation with default coderate (4/5) and LDRO based on SF/BW
+    pub fn new(pbl_len: u16, payload_len: u8, header_type: HeaderType, crc_en: bool, invert_iq: bool) -> Self {
+        Self {pbl_len, payload_len, header_type, crc_en, invert_iq}
+    }
+}
+
 // Recommneded delay for ranging
 // One line per bandwidth: 1000, 812, 500, 406, 250, 203, 125
 const RANGING_DELAY : [u32; 56] = [
@@ -117,7 +174,6 @@ impl SidedetCfg {
     }
 }
 
-
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 /// Frequency estimation during ranging exchange (valid only on responder side)
@@ -129,10 +185,22 @@ pub struct RangingFei {
 }
 
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 /// Define duration of the TimingSync pulse of the responder
 pub enum TimingSyncPulseWidth {
     W1 = 0, W5 = 1, W52 = 2, W520 = 3, W5200 = 4, W52k = 5, W260k = 6, W1024k = 7
+}
+
+#[derive(Debug, Clone, Copy, Default)]
+/// Define Frequency range toelrated by detector
+pub enum FreqRange {#[default]
+    /// +/- Bandwidth/4
+    Narrow = 0,
+    /// +/- Bandwidth/3
+    Medium = 1,
+    /// +/- Bandwidth/2
+    Wide = 2,
 }
 
 impl<O,SPI, M> Lr2021<O,SPI, M> where
@@ -140,14 +208,14 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
 {
 
     /// Set LoRa Modulation parameters
-    pub async fn set_lora_modulation(&mut self, sf: Sf, bw: LoraBw, cr: LoraCr, ldro: Ldro) -> Result<(), Lr2021Error> {
-        let req = set_lora_modulation_params_cmd(sf, bw, cr, ldro);
+    pub async fn set_lora_modulation(&mut self, params: &LoraModulationParams) -> Result<(), Lr2021Error> {
+        let req = set_lora_modulation_params_cmd(params.sf, params.bw, params.cr, params.ldro);
         self.cmd_wr(&req).await
     }
 
     /// Set LoRa Packet parameters
-    pub async fn set_lora_packet(&mut self, pbl_len: u16, payload_len: u8, header_type: HeaderType, crc_en: bool, invert_iq: bool) -> Result<(), Lr2021Error> {
-        let req = set_lora_packet_params_cmd(pbl_len, payload_len, header_type, crc_en, invert_iq);
+    pub async fn set_lora_packet(&mut self, params: &LoraPacketParams) -> Result<(), Lr2021Error> {
+        let req = set_lora_packet_params_cmd(params.pbl_len, params.payload_len, params.header_type, params.crc_en, params.invert_iq);
         self.cmd_wr(&req).await
     }
 
@@ -253,6 +321,22 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
         self.cmd_wr(&req[..len]).await
     }
 
+    /// Configure Side-Detector allowing multiple SF to be detected
+    /// The mask correspond to which side-detector should have its half-bin setting enabled
+    /// Must be called after set_lora_sidedet_cfg
+    pub async fn set_lora_sidedet_halfbin(&mut self, mask: u8) -> Result<(), Lr2021Error> {
+        if (mask & 1) !=0 {
+            self.wr_field(0xF30B0C, 1, 19, 1).await?;
+        }
+        if (mask & 2) !=0 {
+            self.wr_field(0xF30B10, 1, 19, 1).await?;
+        }
+        if (mask & 4) !=0 {
+            self.wr_field(0xF30B14, 1, 19, 1).await?;
+        }
+        Ok(())
+    }
+
     #[allow(clippy::get_first)]
     /// Configure Side-Detector Syncword using basic syncword format
     pub async fn set_lora_sidedet_syncword(&mut self, sw: &[u8]) -> Result<(), Lr2021Error> {
@@ -264,6 +348,12 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
         ];
         let len = sw.len() + 2;
         self.cmd_wr(&req[..len]).await
+    }
+
+    /// Configure the frequency error range supported by detection
+    /// Medium range (+/-BW/3) has only a very minor sensitivity impact while the max range can degrade sensitivity by 2dB
+    pub async fn set_lora_freq_range(&mut self, range: FreqRange) -> Result<(), Lr2021Error> {
+        self.wr_field(0xF30A2C, range as u32, 16, 2).await
     }
 
     /// Long preamble can be modulated in phase in order to provide information about how many symbols are left
@@ -305,8 +395,8 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     /// For lower bandwidth (not recommended to use in ranging) a crude estimation is provided
     /// Note: the board itself will introduce some offset which should not be dependent on SF
     /// but might vary with bandwidth.
-    pub fn get_ranging_base_delay(&self, bw: LoraBw, sf: Sf) -> u32 {
-        let offset = match bw {
+    pub fn get_ranging_base_delay(&self, modulation: &LoraModulationParams) -> u32 {
+        let offset = match modulation.bw {
             LoraBw::Bw1000 =>  0,
             LoraBw::Bw800  =>  8,
             LoraBw::Bw500  => 16,
@@ -316,8 +406,8 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
             LoraBw::Bw125  => 48,
             _              => 56
         };
-        let idx = offset + (sf as usize - 5);
-        RANGING_DELAY.get(idx).copied().unwrap_or(18000 - (5600 >> (12 - sf as u32)))
+        let idx = offset + (modulation.sf as usize - 5);
+        RANGING_DELAY.get(idx).copied().unwrap_or(18000 - (5600 >> (12 - modulation.sf as u32)))
     }
 
     /// Set the ranging parameters: Extended/Spy and number of symbols

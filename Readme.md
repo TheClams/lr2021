@@ -12,7 +12,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-lr2021 = "0.5.0"
+lr2021 = "0.8.0"
 embassy-time = "0.3"
 ```
 

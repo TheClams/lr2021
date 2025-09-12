@@ -12,6 +12,7 @@ pub enum ZwaveMode {
     R2 = 2,
     R3 = 3,
 }
+
 impl ZwaveMode {
     pub fn new(val: u8) -> Self{
         match val {
