@@ -5698,7 +5698,7 @@ categories:
             BW_4_3: 223
             BW_4_2: 167
             BW_3_5: 231
-        - name: pkt_format_tx
+        - name: wmbus_format
           bit_width: 1
           byte_positions: [[4, "0"]]
           description: "Packet format (A or B)"

@@ -25,20 +25,20 @@ pub enum WmbusMode {
 /// Packet format (A or B)
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
-pub enum PktFormatTx {
+pub enum WmbusFormat {
     FormatA = 0,
     FormatB = 1,
 }
 
 /// Configure the wm-bus mode according to EN13757-4 2019
-pub fn set_wmbus_params_cmd(wmbus_mode: WmbusMode, rx_bw: RxBw, pkt_format_tx: PktFormatTx, addr_filt_en: bool, pld_len: u8, pbl_len_tx: u16, pbl_len_detect: u8) -> [u8; 10] {
+pub fn set_wmbus_params_cmd(wmbus_mode: WmbusMode, rx_bw: RxBw, wmbus_format: WmbusFormat, addr_filt_en: bool, pld_len: u8, pbl_len_tx: u16, pbl_len_detect: u8) -> [u8; 10] {
     let mut cmd = [0u8; 10];
     cmd[0] = 0x02;
     cmd[1] = 0x6A;
 
     cmd[2] |= (wmbus_mode as u8) & 0xF;
     cmd[3] |= rx_bw as u8;
-    cmd[4] |= (pkt_format_tx as u8) & 0x1;
+    cmd[4] |= (wmbus_format as u8) & 0x1;
     if addr_filt_en { cmd[5] |= 1; }
     cmd[6] |= pld_len;
     cmd[7] |= ((pbl_len_tx >> 8) & 0xFF) as u8;
