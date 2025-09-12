@@ -6,6 +6,7 @@
   - API for Raw IQ TX/capture
   - Add method to patch RF setting for ranging as this needs to be done after set_packet_type
   - Add LoRa API for hidden features: set_lora_freq_range and set_sidedet_halfbin
+  - Add BLE API for Constant Tone Extension support (experimental)
 
 ### Changed
   - WMbus PktFormat renamed to WmbusFormat
