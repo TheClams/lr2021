@@ -90,9 +90,17 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     pub async fn set_ble_modulation(&mut self, mode: BleMode) -> Result<(), Lr2021Error> {
         let req = set_ble_modulation_params_cmd(mode);
         self.cmd_wr(&req).await?;
-        // Need extra configuration for coded mode
-        if matches!(mode, BleMode::LeCoded500k|BleMode::LeCoded125k) {
-            self.patch_ble_coded(None).await?;
+        // Applu some extra configuration to pass certification
+        match mode {
+            BleMode::Le1mb => {}
+            // Fix preamble length for 2Mb/s
+            BleMode::Le2mb => {
+                self.cmd_wr(&[0x02,0x30,0x01,0x21,0x00,0x07,0x00]).await?;
+            },
+            // Coded mode
+            BleMode::LeCoded500k | BleMode::LeCoded125k => {
+                self.patch_ble_coded(None).await?;
+            }
         }
         Ok(())
     }
@@ -137,15 +145,19 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     /// Patch some settings when BLE Coded is used
     /// This fixes some issue related to BLE certification
     /// Automatically called by `set_ble_modulation` (without a retention slot)
+    /// Note that two retention slot are used (slot and slot+1)
     pub async fn patch_ble_coded(&mut self, ret_en: Option<u8>) -> Result<(), Lr2021Error> {
         //
         if let Some(slot) = ret_en {
             self.add_register_to_retention(slot,ADDR_CPFSK_DEMOD).await?;
+            self.add_register_to_retention(slot+1,ADDR_CPFSK_DETECT).await?;
         }
         // Fix preamble polarity
         self.cmd_wr(&[0x02,0x30,0x01,0x20,0x00,0x09,0x00]).await?;
         // Change tracking to support Dirty TX certification
-        self.wr_reg_mask(ADDR_CPFSK_DEMOD, 0x0020, 0).await
+        self.wr_reg_mask(ADDR_CPFSK_DEMOD, 0x0020, 0x00).await?;
+        // Change detection settings to pass blocking certification
+        self.wr_reg_mask(ADDR_CPFSK_DETECT, 0x007F, 0x7C).await
     }
 
 }

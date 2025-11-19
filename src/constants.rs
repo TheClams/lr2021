@@ -21,6 +21,8 @@ pub const ADDR_FREQ_RF : u32 = 0xF40144;
 /// Address for OOK Detection settings
 pub const ADDR_OOK_DETECT : u32 = 0xF30E14;
 
+/// Address for CPFSK detect tuning
+pub const ADDR_CPFSK_DETECT : u32 = 0xF30C14;
 /// Address for CPFSK demodulation tuning
 pub const ADDR_CPFSK_DEMOD : u32 = 0xF30C28;
 

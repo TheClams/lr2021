@@ -268,6 +268,8 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
         }
         if cfg.has_cpfsk_demod() {
             self.add_register_to_retention(slot, ADDR_CPFSK_DEMOD).await?;
+            slot += 1;
+            self.add_register_to_retention(slot, ADDR_CPFSK_DETECT).await?;
             // slot += 1;
         }
         Ok(())

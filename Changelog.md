@@ -1,5 +1,12 @@
 # Change Log
 
+## [0.10.1] - 2025-11-19
+
+### Changed
+  - BLE: add patches for certification
+    * BLE 2Mb/s: fix preamble length
+    * BLE Coded: Tune detection to pass blocking certification
+
 ## [0.10.0] - 2025-10-19
 
 ### Changed
