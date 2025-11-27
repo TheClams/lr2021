@@ -40,7 +40,7 @@
 //! - [`get_ble_packet_status`](Lr2021::get_ble_packet_status) - Get status of last received packet
 //! - [`get_ble_rx_stats`](Lr2021::get_ble_rx_stats) - Get basic reception statistics
 //!
-use embedded_hal::digital::v2::OutputPin;
+use embedded_hal::digital::OutputPin;
 use embedded_hal_async::spi::SpiBus;
 
 use crate::constants::*;

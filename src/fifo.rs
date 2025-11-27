@@ -21,7 +21,7 @@
 //! - [`get_rx_fifo_lvl`](Lr2021::get_rx_fifo_lvl) - Get number of bytes in RX FIFO
 //! - [`clear_rx_fifo`](Lr2021::clear_rx_fifo) - Clear all data from RX FIFO
 
-use embedded_hal::digital::v2::OutputPin;
+use embedded_hal::digital::OutputPin;
 use embedded_hal_async::spi::SpiBus;
 
 use super::cmd::cmd_system::*;

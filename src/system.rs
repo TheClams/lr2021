@@ -49,7 +49,7 @@
 //! - ['get_random_number'](Lr2021::get_random_number) -  Return a random number using entropy from PLL and ADC
 
 use embassy_time::Duration;
-use embedded_hal::digital::v2::OutputPin;
+use embedded_hal::digital::OutputPin;
 use embedded_hal_async::spi::SpiBus;
 
 use crate::cmd::cmd_regmem::{read_reg_mem32_req, write_reg_mem32_cmd, write_reg_mem_mask32_cmd, ReadRegMem32Rsp};

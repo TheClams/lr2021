@@ -56,7 +56,7 @@
 
 
 use embassy_time::{Duration, Timer};
-use embedded_hal::digital::v2::OutputPin;
+use embedded_hal::digital::OutputPin;
 use embedded_hal_async::spi::SpiBus;
 
 use crate::{cmd::cmd_regmem::write_reg_mem_mask32_cmd, constants::*};

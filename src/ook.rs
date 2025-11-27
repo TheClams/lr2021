@@ -65,7 +65,7 @@
 //! - [`get_ook_packet_status`](Lr2021::get_ook_packet_status) - Get packet status (length, RSSI, LQI)
 //! - [`get_ook_rx_stats`](Lr2021::get_ook_rx_stats) - Get reception statistics
 
-use embedded_hal::digital::v2::OutputPin;
+use embedded_hal::digital::OutputPin;
 use embedded_hal_async::spi::SpiBus;
 
 use crate::{

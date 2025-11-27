@@ -108,7 +108,7 @@ mod constants;
 use core::marker::PhantomData;
 
 use embassy_time::{with_timeout, Duration, Instant, Timer};
-use embedded_hal::digital::v2::{OutputPin, InputPin};
+use embedded_hal::digital::{OutputPin, InputPin};
 use embedded_hal_async::{digital::Wait, spi::SpiBus};
 
 use status::{CmdStatus, Intr, Status};
@@ -289,7 +289,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Check if the busy pin is high (debug)
-    pub fn is_busy(&self) -> bool {
+    pub fn is_busy(&mut self) -> bool {
         self.busy.is_high().unwrap_or(false)
     }
 

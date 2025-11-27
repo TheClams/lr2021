@@ -69,7 +69,7 @@
 //! - [`set_lora_timing_sync`](Lr2021::set_lora_timing_sync) - Configure timing synchronization mode
 //! - [`set_lora_timing_sync_pulse`](Lr2021::set_lora_timing_sync_pulse) - Configure timing sync pulse parameters
 
-use embedded_hal::digital::v2::OutputPin;
+use embedded_hal::digital::OutputPin;
 use embedded_hal_async::spi::SpiBus;
 
 use crate::constants::*;
