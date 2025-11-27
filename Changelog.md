@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.11.0] - 2025-11-27
+
+### Changed
+  - SetTxParams: power change from u8 to i8 to support power below 0dBm
+
 ## [0.10.1] - 2025-11-19
 
 ### Changed

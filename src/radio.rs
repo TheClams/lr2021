@@ -101,7 +101,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     /// Set Tx power and ramp time
     /// TX Power in given in half-dB unit. Range is -19..44 for LF Path and -39..24 for HF path
     /// Ramp-time is important to reduce Out-of-band emission. A safe rule of thumb is to set it to around 4/Bandwidth.
-    pub async fn set_tx_params(&mut self, tx_power: u8, ramp_time: RampTime) -> Result<(), Lr2021Error> {
+    pub async fn set_tx_params(&mut self, tx_power: i8, ramp_time: RampTime) -> Result<(), Lr2021Error> {
         let req = set_tx_params_cmd(tx_power, ramp_time);
         self.cmd_wr(&req).await
     }

@@ -203,12 +203,12 @@ pub fn set_pa_config_adv_cmd(pa_sel: PaSel, pa_lf_mode: PaLfMode, pa_lf_duty_cyc
 }
 
 /// Sets the TX power and ramp time of the PA. The FW configures the corresponding registers, including OCP/OVP
-pub fn set_tx_params_cmd(tx_power: u8, ramp_time: RampTime) -> [u8; 4] {
+pub fn set_tx_params_cmd(tx_power: i8, ramp_time: RampTime) -> [u8; 4] {
     let mut cmd = [0u8; 4];
     cmd[0] = 0x02;
     cmd[1] = 0x03;
 
-    cmd[2] |= tx_power;
+    cmd[2] |= (tx_power) as u8;
     cmd[3] |= ramp_time as u8;
     cmd
 }

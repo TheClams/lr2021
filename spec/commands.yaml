@@ -485,6 +485,7 @@ categories:
         parameters:
         - name: tx_power
           bit_width: 8
+          signed: true
           byte_positions:
           - - 2
             - '7:0'

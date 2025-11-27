@@ -1,6 +1,6 @@
 [package]
 name = "lr2021"
-version = "0.10.1"
+version = "0.11.0"
 edition = "2024"
 license = "MIT"
 description = "Driver for Semtech LR2021"
@@ -18,7 +18,7 @@ embassy-time = { version = "0.4.0", features = ["defmt", "defmt-timestamp-uptime
 embassy-embedded-hal = { version = "0.4.0" }
 
 embedded-hal = "0.2.6"
-embedded-hal-async = { version = "1.0" }
+embedded-hal-async = "1.0"
 
 defmt = { version = "1.0.1", optional = true }
 
