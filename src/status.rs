@@ -159,46 +159,96 @@ impl defmt::Format for Status {
     }
 }
 
+/// RX FIFO threshold reached
 pub const IRQ_MASK_RX_FIFO             : u32 = 0x00000001;
+/// TX FIFO threshold reached
 pub const IRQ_MASK_TX_FIFO             : u32 = 0x00000002;
+/// Valid ranging request received (slave)
 pub const IRQ_MASK_RNG_REQ_VLD         : u32 = 0x00000004;
+/// IRq for time-stamping end of packet Tx, without dependent delay of mode switching.
+/// Only to be used for timestamping, not for changing mode or re-configuring the device.
 pub const IRQ_MASK_TX_TIMESTAMP        : u32 = 0x00000008;
+/// IRq for time-stamping end of packet Rx, without dependent delay of demodulation or mode switching.
+/// Only to be used for timestamping, not for changing mode or re-configuring the device.
 pub const IRQ_MASK_RX_TIMESTAMP        : u32 = 0x00000010;
+/// Preamble detected
 pub const IRQ_MASK_PREAMBLE_DETECTED   : u32 = 0x00000020;
+/// LoRa header detected / Valid sync word
 pub const IRQ_MASK_HEADER_VALID        : u32 = 0x00000040;
+/// Channel activity detected
 pub const IRQ_MASK_CAD_DETECTED        : u32 = 0x00000080;
 
+/// LoRa header precise timestamp (explicit mode). In implicit mode will assert after 8 symbols of the payload.
 pub const IRQ_MASK_LORA_HDR_TIMESTAMP  : u32 = 0x00000100;
+/// LoRa header CRC error
 pub const IRQ_MASK_HEADER_ERR          : u32 = 0x00000200;
+/// End of life
 pub const IRQ_MASK_EOL                 : u32 = 0x00000400;
+/// PA OCP/OVP was triggered
 pub const IRQ_MASK_PA                  : u32 = 0x00000800;
+/// IRq for LoRa intra-packet hopping
 pub const IRQ_MASK_LORA_TX_RX_HOP      : u32 = 0x00001000;
+/// Syncword match failed after detection (for debug)
 pub const IRQ_MASK_SYNC_FAIL           : u32 = 0x00002000;
+/// End of LoRa symbol (for debug)
 pub const IRQ_MASK_LORA_SYMBOL_END     : u32 = 0x00004000;
+/// New statistics available in timestamp register (debug)
 pub const IRQ_MASK_LORA_TIMESTAMP_STAT : u32 = 0x00008000;
 
+/// An error other than a command error occurred (See GetErrors)
 pub const IRQ_MASK_ERROR               : u32 = 0x00010000;
+/// There was a host command fail/error
 pub const IRQ_MASK_CMD                 : u32 = 0x00020000;
+/// Packet received
 pub const IRQ_MASK_RX_DONE             : u32 = 0x00040000;
+/// Packet transmission completed
 pub const IRQ_MASK_TX_DONE             : u32 = 0x00080000;
+/// Channel activity detection finished
 pub const IRQ_MASK_CAD_DONE            : u32 = 0x00100000;
+/// Rx or Tx timeout
 pub const IRQ_MASK_TIMEOUT             : u32 = 0x00200000;
+/// IRq raised if the packet was received with a wrong CRC
 pub const IRQ_MASK_CRC_ERROR           : u32 = 0x00400000;
+/// IRq raised if the packet was received with a length error
 pub const IRQ_MASK_LEN_ERROR           : u32 = 0x00800000;
 
+/// IRq raised if the packet was received with a wrong address match
 pub const IRQ_MASK_ADDR_ERROR          : u32 = 0x01000000;
+/// IRQ after each ramp-up for intra-packet hopping
 pub const IRQ_MASK_FHSS                : u32 = 0x02000000;
+/// Host can load new frequencies table
 pub const IRQ_MASK_INTER_PACKET1       : u32 = 0x04000000;
+/// Host can load new payload
 pub const IRQ_MASK_INTER_PACKET2       : u32 = 0x08000000;
+/// Slave sent its ranging response
 pub const IRQ_MASK_RNG_RESP_DONE       : u32 = 0x10000000;
+/// Ranging request discarded (no address match)
 pub const IRQ_MASK_RNG_REQ_DIS         : u32 = 0x20000000;
+/// Master received a valid ranging response from the slave
 pub const IRQ_MASK_RNG_EXCH_VLD        : u32 = 0x40000000;
+/// Master did not receive a response from the slave
 pub const IRQ_MASK_RNG_TIMEOUT         : u32 = 0x80000000;
+
+/// Mask to enable all interrupt usefull for LoRa TX/RX (preamble detected, header ok/err, tx/rx done, timeout, CRC error)
+pub const IRQ_MASK_LORA_TXRX : u32 =
+    IRQ_MASK_PREAMBLE_DETECTED |
+    IRQ_MASK_HEADER_ERR | IRQ_MASK_HEADER_VALID |
+    IRQ_MASK_RX_DONE | IRQ_MASK_TX_DONE |
+    IRQ_MASK_CAD_DETECTED | IRQ_MASK_CAD_DONE |
+    IRQ_MASK_TIMEOUT | IRQ_MASK_CRC_ERROR;
+
+/// Mask to enable all interrupt usefull for FSK TX/RX (preamble detected, tx/rx done, timeout, CRC/Length error)
+pub const IRQ_MASK_FSK_TXRX : u32 =
+    IRQ_MASK_PREAMBLE_DETECTED |
+    IRQ_MASK_RX_DONE | IRQ_MASK_TX_DONE |
+    IRQ_MASK_LEN_ERROR |
+    IRQ_MASK_TIMEOUT | IRQ_MASK_CRC_ERROR;
 
 #[derive(Default, Clone, Copy)]
 pub struct Intr(u32);
 
 impl Intr {
+
     /// Create Interrupt status from a slice
     /// Handle gracefully case where slice is smaller than interrupt size
     /// (this happens when retrieving interrupt value while writing command smaller than 6B)
@@ -210,8 +260,21 @@ impl Intr {
         Intr(v)
     }
 
+    /// Create a new interrupt using a mask value
+    /// Use IRQ_MASK_* constant to build it
     pub fn new(value: u32) -> Intr {
         Intr(value)
+    }
+
+    /// Create a new interrupt to raise IRQ on TX/RX Done as-well as Timeout error
+    pub fn new_txrx() -> Intr {
+        Intr(IRQ_MASK_RX_DONE|IRQ_MASK_TX_DONE|IRQ_MASK_TIMEOUT)
+    }
+
+    /// Create a new interrupt for LoRa Ranging operations
+    /// Enable Ranging exchange valid, response done, request discarded and timeout
+    pub fn new_ranging() -> Intr {
+        Intr(IRQ_MASK_RNG_EXCH_VLD|IRQ_MASK_RNG_RESP_DONE|IRQ_MASK_RNG_REQ_DIS|IRQ_MASK_TIMEOUT|IRQ_MASK_RNG_TIMEOUT)
     }
 
     /// Return the interrupt status as u32
@@ -228,99 +291,136 @@ impl Intr {
         self.0 == 0
     }
 
+    /// Returns true if RX FIFO threshold reached interrupt has been raised
     pub fn rx_fifo(&self) -> bool {
         (self.0 & IRQ_MASK_RX_FIFO) != 0
     }
+    /// Returns true if TX FIFO threshold reached interrupt has been raised
     pub fn tx_fifo(&self) -> bool {
         (self.0 & IRQ_MASK_TX_FIFO) != 0
     }
+    /// Returns true if valid ranging request received (slave) interrupt has been raised
     pub fn rng_req_vld(&self) -> bool {
         (self.0 & IRQ_MASK_RNG_REQ_VLD) != 0
     }
+    /// Returns true if TX timestamp interrupt has been raised.
+    /// IRq for time-stamping end of packet Tx, without dependent delay of mode switching.
+    /// Only to be used for timestamping, not for changing mode or re-configuring the device.
     pub fn tx_timestamp(&self) -> bool {
         (self.0 & IRQ_MASK_TX_TIMESTAMP) != 0
     }
+    /// Returns true if RX timestamp interrupt has been raised.
+    /// IRq for time-stamping end of packet Rx, without dependent delay of demodulation or mode switching.
+    /// Only to be used for timestamping, not for changing mode or re-configuring the device.
     pub fn rx_timestamp(&self) -> bool {
         (self.0 & IRQ_MASK_RX_TIMESTAMP) != 0
     }
+    /// Returns true if preamble detected interrupt has been raised
     pub fn preamble_detected(&self) -> bool {
         (self.0 & IRQ_MASK_PREAMBLE_DETECTED) != 0
     }
+    /// Returns true if LoRa header detected / valid sync word interrupt has been raised
     pub fn header_valid(&self) -> bool {
         (self.0 & IRQ_MASK_HEADER_VALID) != 0
     }
+    /// Returns true if channel activity detected interrupt has been raised
     pub fn cad_detected(&self) -> bool {
         (self.0 & IRQ_MASK_CAD_DETECTED) != 0
     }
+    /// Returns true if LoRa header precise timestamp interrupt has been raised.
+    /// In explicit mode: LoRa header precise timestamp. In implicit mode will assert after 8 symbols of the payload.
     pub fn lora_hdr_timestamp(&self) -> bool {
         (self.0 & IRQ_MASK_LORA_HDR_TIMESTAMP) != 0
     }
+    /// Returns true if LoRa header CRC error interrupt has been raised
     pub fn header_err(&self) -> bool {
         (self.0 & IRQ_MASK_HEADER_ERR) != 0
     }
+    /// Returns true if end of life interrupt has been raised
     pub fn eol(&self) -> bool {
         (self.0 & IRQ_MASK_EOL) != 0
     }
+    /// Returns true if PA OCP/OVP was triggered interrupt has been raised
     pub fn pa(&self) -> bool {
         (self.0 & IRQ_MASK_PA) != 0
     }
+    /// Returns true if LoRa intra-packet hopping interrupt has been raised
     pub fn lora_tx_rx_hop(&self) -> bool {
         (self.0 & IRQ_MASK_LORA_TX_RX_HOP) != 0
     }
+    /// Returns true if syncword match failed after detection interrupt has been raised (for debug)
     pub fn sync_fail(&self) -> bool {
         (self.0 & IRQ_MASK_SYNC_FAIL) != 0
     }
+    /// Returns true if end of LoRa symbol interrupt has been raised (for debug)
     pub fn lora_symbol_end(&self) -> bool {
         (self.0 & IRQ_MASK_LORA_SYMBOL_END) != 0
     }
+    /// Returns true if new statistics available in timestamp register interrupt has been raised (debug)
     pub fn lora_timestamp_stat(&self) -> bool {
         (self.0 & IRQ_MASK_LORA_TIMESTAMP_STAT) != 0
     }
+    /// Returns true if an error other than a command error occurred interrupt has been raised (See GetErrors)
     pub fn error(&self) -> bool {
         (self.0 & IRQ_MASK_ERROR) != 0
     }
+    /// Returns true if there was a host command fail/error interrupt has been raised
     pub fn cmd(&self) -> bool {
         (self.0 & IRQ_MASK_CMD) != 0
     }
+    /// Returns true if packet received interrupt has been raised
     pub fn rx_done(&self) -> bool {
         (self.0 & IRQ_MASK_RX_DONE) != 0
     }
+    /// Returns true if packet transmission completed interrupt has been raised
     pub fn tx_done(&self) -> bool {
         (self.0 & IRQ_MASK_TX_DONE) != 0
     }
+    /// Returns true if channel activity detection finished interrupt has been raised
     pub fn cad_done(&self) -> bool {
         (self.0 & IRQ_MASK_CAD_DONE) != 0
     }
+    /// Returns true if Rx or Tx timeout interrupt has been raised
     pub fn timeout(&self) -> bool {
         (self.0 & IRQ_MASK_TIMEOUT) != 0
     }
+    /// Returns true if the packet was received with a wrong CRC interrupt has been raised
     pub fn crc_error(&self) -> bool {
         (self.0 & IRQ_MASK_CRC_ERROR) != 0
     }
+    /// Returns true if the packet was received with a length error interrupt has been raised
     pub fn len_error(&self) -> bool {
         (self.0 & IRQ_MASK_LEN_ERROR) != 0
     }
+    /// Returns true if the packet was received with a wrong address match interrupt has been raised
     pub fn addr_error(&self) -> bool {
         (self.0 & IRQ_MASK_ADDR_ERROR) != 0
     }
+    /// Returns true if IRQ after each ramp-up for intra-packet hopping interrupt has been raised
     pub fn fhss(&self) -> bool {
         (self.0 & IRQ_MASK_FHSS) != 0
     }
+    /// Returns true if host can load new frequencies table interrupt has been raised
     pub fn inter_packet1(&self) -> bool {
         (self.0 & IRQ_MASK_INTER_PACKET1) != 0
     }
+    /// Returns true if host can load new payload interrupt has been raised
     pub fn inter_packet2(&self) -> bool {
         (self.0 & IRQ_MASK_INTER_PACKET2) != 0
     }
+    /// Returns true if slave sent its ranging response interrupt has been raised
     pub fn rng_resp_done(&self) -> bool {
         (self.0 & IRQ_MASK_RNG_RESP_DONE) != 0
     }
+    /// Returns true if ranging request discarded (no address match) interrupt has been raised
     pub fn rng_req_dis(&self) -> bool {
         (self.0 & IRQ_MASK_RNG_REQ_DIS) != 0
     }
+    /// Returns true if master received a valid ranging response from the slave interrupt has been raised
     pub fn rng_exch_vld(&self) -> bool {
         (self.0 & IRQ_MASK_RNG_EXCH_VLD) != 0
     }
+    /// Returns true if master did not receive a response from the slave interrupt has been raised
     pub fn rng_timeout(&self) -> bool {
         (self.0 & IRQ_MASK_RNG_TIMEOUT) != 0
     }

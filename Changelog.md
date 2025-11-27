@@ -5,6 +5,11 @@
 ### Changed
   - SetTxParams: power change from u8 to i8 to support power below 0dBm
 
+### Added
+  - Interrupts:
+    * add some shortcut constant and methods to ease creating interrupts setting
+    * Add documentation on all interrupts methods and constant
+
 ## [0.10.1] - 2025-11-19
 
 ### Changed
