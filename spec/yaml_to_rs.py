@@ -206,13 +206,13 @@ def gen_enum(field: Field) -> str:
         lines.append("    pub fn to_hz(&self) -> u32 {")
         lines.append("        match self {")
         lines.append("            LoraBw::Bw1000 => 1_000_000,")
-        lines.append("            LoraBw::Bw800  =>   812_500,")
+        lines.append("            LoraBw::Bw812  =>   812_500,")
         lines.append("            LoraBw::Bw500  =>   500_000,")
-        lines.append("            LoraBw::Bw400  =>   406_250,")
+        lines.append("            LoraBw::Bw406  =>   406_250,")
         lines.append("            LoraBw::Bw250  =>   250_000,")
-        lines.append("            LoraBw::Bw200  =>   203_125,")
+        lines.append("            LoraBw::Bw203  =>   203_125,")
         lines.append("            LoraBw::Bw125  =>   125_000,")
-        lines.append("            LoraBw::Bw100  =>   101_562,")
+        lines.append("            LoraBw::Bw101  =>   101_562,")
         lines.append("            LoraBw::Bw83   =>    83_333,")
         lines.append("            LoraBw::Bw62   =>    62_500,")
         lines.append("            LoraBw::Bw41   =>    41_666,")
@@ -227,7 +227,7 @@ def gen_enum(field: Field) -> str:
         lines.append("    /// Corresponds to band used in SX1280");
         lines.append("    pub fn is_fractional(&self) -> bool {");
         lines.append("        use LoraBw::*;");
-        lines.append("        matches!(self, Bw800 | Bw400 | Bw200 | Bw100)");
+        lines.append("        matches!(self, Bw812 | Bw406 | Bw203 | Bw101)");
         lines.append("    }");
         lines.append("}\n")
         lines.append("impl PartialOrd for LoraBw {")
@@ -559,13 +559,13 @@ def gen_rsp(cmd: Command, _category: str, advanced: bool = False) -> str:
         lines.append("    }")
     
     if cmd.name == 'GetErrors':
-        lines.append("    /// 32 bits values")
-        lines.append("    pub fn value(&self) -> u32 {")
-        lines.append("        u32::from_be_bytes(self.0)")
+        lines.append("    /// 16 bits value")
+        lines.append("    pub fn value(&self) -> u16 {")
+        lines.append("        u16::from_be_bytes([self.0[2], self.0[3]])")
         lines.append("    }\n")
         lines.append("    /// Flag when no error are present")
         lines.append("    pub fn none(&self) -> bool {")
-        lines.append("        self.0[0] == 0 && self.0[1] == 0 && self.0[2] == 0 && self.0[3] == 0")
+        lines.append("        self.0[2] == 0 && self.0[3] == 0")
         lines.append("    }")
 
     lines.append("}")

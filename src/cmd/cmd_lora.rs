@@ -33,10 +33,10 @@ pub enum LoraBw {
     Bw20 = 9,
     Bw41 = 10,
     Bw83 = 11,
-    Bw100 = 12,
-    Bw200 = 13,
-    Bw400 = 14,
-    Bw800 = 15,
+    Bw101 = 12,
+    Bw203 = 13,
+    Bw406 = 14,
+    Bw812 = 15,
 }
 
 impl LoraBw {
@@ -44,13 +44,13 @@ impl LoraBw {
     pub fn to_hz(&self) -> u32 {
         match self {
             LoraBw::Bw1000 => 1_000_000,
-            LoraBw::Bw800  =>   812_500,
+            LoraBw::Bw812  =>   812_500,
             LoraBw::Bw500  =>   500_000,
-            LoraBw::Bw400  =>   406_250,
+            LoraBw::Bw406  =>   406_250,
             LoraBw::Bw250  =>   250_000,
-            LoraBw::Bw200  =>   203_125,
+            LoraBw::Bw203  =>   203_125,
             LoraBw::Bw125  =>   125_000,
-            LoraBw::Bw100  =>   101_562,
+            LoraBw::Bw101  =>   101_562,
             LoraBw::Bw83   =>    83_333,
             LoraBw::Bw62   =>    62_500,
             LoraBw::Bw41   =>    41_666,
@@ -66,7 +66,7 @@ impl LoraBw {
     /// Corresponds to band used in SX1280
     pub fn is_fractional(&self) -> bool {
         use LoraBw::*;
-        matches!(self, Bw800 | Bw400 | Bw200 | Bw100)
+        matches!(self, Bw812 | Bw406 | Bw203 | Bw101)
     }
 }
 

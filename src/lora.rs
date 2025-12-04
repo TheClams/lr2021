@@ -480,11 +480,11 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     pub fn get_ranging_base_delay(&self, modulation: &LoraModulationParams) -> u32 {
         let offset = match modulation.bw {
             LoraBw::Bw1000 =>  0,
-            LoraBw::Bw800  =>  8,
+            LoraBw::Bw812  =>  8,
             LoraBw::Bw500  => 16,
-            LoraBw::Bw400  => 24,
+            LoraBw::Bw406  => 24,
             LoraBw::Bw250  => 32,
-            LoraBw::Bw200  => 40,
+            LoraBw::Bw203  => 40,
             LoraBw::Bw125  => 48,
             _              => 56
         };

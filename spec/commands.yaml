@@ -1769,10 +1769,10 @@ categories:
             BW_20: 9
             BW_41: 10
             BW_83: 11
-            BW_100: 12
-            BW_200: 13
-            BW_400: 14
-            BW_800: 15
+            BW_101: 12
+            BW_203: 13
+            BW_406: 14
+            BW_812: 15
         - name: lora_cr
           bit_width: 4
           byte_positions:
