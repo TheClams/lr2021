@@ -1,5 +1,17 @@
 # Change Log
 
+## [0.13.0] - 2025-12-04
+
+### Changed
+  - LoRa:
+    * Renamed some bandwidth (800->812, 400->406, 200->203, 100->101)
+    * `lora_set_cad_params` now uses a struct with a few builders.
+
+## [0.12.0] - 2025-11-28
+
+### Changed
+  - Depencencies updated to more recent version (embedded-hal 1.0.0 and embassy-embedded-hal 0.5.0)
+
 ## [0.11.0] - 2025-11-27
 
 ### Changed

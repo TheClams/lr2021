@@ -746,14 +746,14 @@ impl ErrorsRsp {
     pub fn src_calib(&self) -> bool {
         (self.0[2] >> 5) & 0x1 != 0
     }
-    /// 32 bits values
-    pub fn value(&self) -> u32 {
-        u32::from_be_bytes(self.0)
+    /// 16 bits value
+    pub fn value(&self) -> u16 {
+        u16::from_be_bytes([self.0[2], self.0[3]])
     }
 
     /// Flag when no error are present
     pub fn none(&self) -> bool {
-        self.0[0] == 0 && self.0[1] == 0 && self.0[2] == 0 && self.0[3] == 0
+        self.0[2] == 0 && self.0[3] == 0
     }
 }
 

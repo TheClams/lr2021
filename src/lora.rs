@@ -39,7 +39,7 @@
 //! - [`get_lora_fei`](Lr2021::get_lora_fei) - Return last frequency estimation
 //!
 //! ### Channel Activity Detection (CAD)
-//! - [`set_lora_cad_params`](Lr2021::set_lora_cad_params) - Configure CAD parameters for listen-before-talk
+//! - [`set_lora_cad_params`](Lr2021::set_lora_cad_params) - Configure CAD parameters
 //! - [`set_lora_cad`](Lr2021::set_lora_cad) - Start channel activity detection
 //!
 //! ### Misc Features
@@ -142,6 +142,79 @@ impl LoraPacketParams {
     /// Modulation with default coderate (4/5) and LDRO based on SF/BW
     pub fn new(pbl_len: u16, payload_len: u8, header_type: HeaderType, crc_en: bool, invert_iq: bool) -> Self {
         Self {pbl_len, payload_len, header_type, crc_en, invert_iq}
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
+/// LoRa CAD parameters: SF, Bandwidth, Code-rate, LDRO
+pub struct LoraCadParams {
+    /// Number of symbols (1 to 15)
+    nb_symbols: u8,
+    /// Configure CAD to detect only preamble rather than any LoRa symbols
+    pub preamble_only: bool ,
+    /// Exit Mode: Idle, RX (low power detect on long preamble) or TX (for Listen-Before-Talk)
+    pub exit_mode: ExitMode,
+    /// timeout for the following RX or TX if exit mode is not CAD_ONLY
+    pub timeout: u32,
+    /// Detection threshold
+    pub thr: u8,
+    /// Delta applied on threashold at each symbols to shorten CAD when there is no LoRa symbols
+    pub delta: u8,
+}
+
+/// Recommended CAD threshold for a given SF and number of symbols
+pub fn lora_cad_thr(sf: Sf, nb_symbols: u8) -> u8 {
+    let base_symb = match nb_symbols {
+        0 | 1 => 60,
+        2 => 56,
+        3 => 52,
+        _ => 51
+    };
+    let offset_sf = match sf {
+        Sf::Sf5 => 0,
+        Sf::Sf6 => 1,
+        Sf::Sf7 => 2,
+        Sf::Sf8 => 3,
+        Sf::Sf9 => 5,
+        Sf::Sf10 => 6,
+        Sf::Sf11 => 8,
+        Sf::Sf12 => 10,
+    };
+    base_symb + offset_sf
+}
+
+impl LoraCadParams {
+
+    /// Create CAD parameter for a CAD only operation
+    pub fn new_cad_only(sf: Sf, nb_symbols: u8, fast: bool) -> Self {
+        let nb_symbols = nb_symbols.clamp(1,15);
+        let thr = lora_cad_thr(sf, nb_symbols);
+        LoraCadParams {
+            nb_symbols,
+            preamble_only: false,
+            exit_mode: ExitMode::CadOnly,
+            timeout: 0,
+            delta: if fast {8} else {0},
+            thr
+        }
+    }
+
+    /// Create CAD parameter with automatic detection threshold
+    pub fn new_auto(sf: Sf, nb_symbols: u8, exit_mode: ExitMode, timeout: u32, fast: bool) -> Self {
+        let nb_symbols = nb_symbols.clamp(1,15);
+        let thr = lora_cad_thr(sf, nb_symbols);
+        let delta = if fast {8} else {0};
+        let preamble_only = exit_mode==ExitMode::CadRx;
+        LoraCadParams {nb_symbols, preamble_only, exit_mode, timeout, thr, delta}
+    }
+
+    /// Create CAD parameter with manual detection threshold
+    pub fn new(nb_symbols: u8, thr: u8, exit_mode: ExitMode, timeout: u32, delta: u8) -> Self {
+        let nb_symbols = nb_symbols.clamp(1,15);
+        let delta = delta&0xF;
+        let preamble_only = exit_mode==ExitMode::CadRx;
+        LoraCadParams {nb_symbols, preamble_only, exit_mode, timeout, thr, delta}
     }
 }
 
@@ -337,17 +410,9 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Set LoRa Channel Activity Detection parameters
-    /// - nb_symbols is the number of symbols for detection: between 1 and 15, use 4 for ideal performances.
-    /// - pbl_any: set to false when explicitly searching for preamble, and 1 for any LoRa activity. Note that even when set to 0, CAD can still detect non-preamble, just less likely.
-    /// - pnr_delta: Value between 0 and 15 to shorten the CAD time when there is obvisouly no LoRa activity. Set to 0 to always listen for the full duration, set to ~10 for optimal performances.
-    ///   Higher value increase the chance to miss activity, while lower value will limit the chance to stop CAD early
-    /// - exit_mode: Choose what happens after the CAD: fallback mode, RX or TX (for Listen-Before-Talk)
-    /// - timeout: defines the timeout for the following RX or TX if exit mode is not CAD_ONLY
-    /// - det_peak: control the detection threshold. Use None to let firmware automatically decide the threshold based on the SF/BW/nb_symbols/pnr_delta
-    pub async fn set_lora_cad_params(&mut self, nb_symbols: u8, pbl_any: bool, pnr_delta: u8, exit_mode: ExitMode, timeout: u32, det_peak: Option<u8>) -> Result<(), Lr2021Error> {
-        let req = set_lora_cad_params_cmd(nb_symbols, pbl_any, pnr_delta, exit_mode, timeout, det_peak.unwrap_or(0));
-        let req_s = if det_peak.is_none() {&req[0..8]} else {&req};
-        self.cmd_wr(req_s).await
+    pub async fn set_lora_cad_params(&mut self, params: &LoraCadParams) -> Result<(), Lr2021Error> {
+        let req = set_lora_cad_params_cmd(params.nb_symbols, params.preamble_only, params.delta, params.exit_mode, params.timeout, params.thr);
+        self.cmd_wr(&req).await
     }
 
     /// Start a LoRa Channel Activity Detection (CAD)
