@@ -313,7 +313,7 @@ pub fn sel_pa_cmd(pa_sel: PaSel) -> [u8; 3] {
 }
 
 /// Start reception every cycle_time and listen for rx_max_time
-pub fn set_rx_duty_cyle_cmd(rx_max_time: u32, cycle_time: u32, use_lora_cad: bool, dram_ret: u8) -> [u8; 9] {
+pub fn set_rx_duty_cycle_cmd(rx_max_time: u32, cycle_time: u32, use_lora_cad: bool, dram_ret: u8) -> [u8; 9] {
     let mut cmd = [0u8; 9];
     cmd[0] = 0x02;
     cmd[1] = 0x10;

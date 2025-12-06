@@ -29,8 +29,24 @@ pub enum Hopping {
     TestPaRamp = 3,
 }
 
+/// Bandwidth occupied by hopping pattern
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
+pub enum LrfhssBw {
+    Bw39p06 = 0,
+    Bw85p94 = 1,
+    Bw136p72 = 2,
+    Bw183p59 = 3,
+    Bw335p94 = 4,
+    Bw386p72 = 5,
+    Bw722p66 = 6,
+    Bw773p44 = 7,
+    Bw1523p4 = 8,
+    Bw1574p2 = 9,
+}
+
 /// Prepare LR-FHSS packet in the FIFO without sending it
-pub fn lr_fhss_build_frame_cmd(sync_header_cnt: u8, lrfhss_cr: LrfhssCr, grid: Grid, hopping: Hopping, bw: u8, sequence: u16, offset: i8) -> [u8; 8] {
+pub fn lr_fhss_build_frame_cmd(sync_header_cnt: u8, lrfhss_cr: LrfhssCr, grid: Grid, hopping: Hopping, lrfhss_bw: LrfhssBw, sequence: u16, offset: i8) -> [u8; 8] {
     let mut cmd = [0u8; 8];
     cmd[0] = 0x02;
     cmd[1] = 0x56;
@@ -39,7 +55,7 @@ pub fn lr_fhss_build_frame_cmd(sync_header_cnt: u8, lrfhss_cr: LrfhssCr, grid: G
     cmd[2] |= ((lrfhss_cr as u8) & 0xF) << 4;
     cmd[3] |= ((grid as u8) & 0xF) << 4;
     cmd[4] |= (hopping as u8) & 0xF;
-    cmd[4] |= (bw & 0xF) << 4;
+    cmd[4] |= ((lrfhss_bw as u8) & 0xF) << 4;
     cmd[5] |= ((sequence >> 8) & 0xFF) as u8;
     cmd[6] |= (sequence & 0xFF) as u8;
     cmd[7] |= (offset) as u8;

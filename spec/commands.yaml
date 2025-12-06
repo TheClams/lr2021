@@ -688,7 +688,7 @@ categories:
           enum:
             LF_PA: 0
             HF_PA: 1
-      SetRxDutyCyle:
+      SetRxDutyCycle:
         opcode: 528
         description: Start reception every cycle_time and listen for rx_max_time
         parameters:
@@ -2396,13 +2396,24 @@ categories:
             HOPPING: 1
             TEST_PAYLOAD_ENCODED: 2
             TEST_PA_RAMP: 3
-        - name: bw
+        - name: lrfhss_bw
           bit_width: 4
           byte_positions:
           - - 4
             - '7:4'
-          description: Bandwidth selection (0..9 according to LR-FHSS spec)
           optional: false
+          description: 'Bandwidth occupied by hopping pattern'
+          enum:
+            BW_39_06: 0
+            BW_85_94: 1
+            BW_136_72: 2
+            BW_183_59: 3
+            BW_335_94: 4
+            BW_386_72: 5
+            BW_722_66: 6
+            BW_773_44: 7
+            BW_1523_4: 8
+            BW_1574_2: 9
         - name: sequence
           bit_width: 9
           byte_positions:

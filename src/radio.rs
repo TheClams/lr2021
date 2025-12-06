@@ -173,7 +173,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     /// The `use_lora_cad` is only valid if packet type was set to LoRa and performs a CAD instead of a standard reception.
     /// In this case the exit mode of the CAD is performed, i.e. it can start a TX if configured as Listen-Before-Talk
     pub async fn set_rx_duty_cycle(&mut self, listen_time: u32, cycle_time: u32, use_lora_cad: bool, dram_ret: u8) -> Result<(), Lr2021Error> {
-        let req = set_rx_duty_cyle_cmd(listen_time, cycle_time, use_lora_cad, dram_ret);
+        let req = set_rx_duty_cycle_cmd(listen_time, cycle_time, use_lora_cad, dram_ret);
         self.cmd_wr(&req).await
     }
 

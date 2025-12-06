@@ -1,11 +1,13 @@
 # Change Log
 
-## [0.13.0] - 2025-12-04
+## [0.13.0] - 2025-12-06
 
 ### Changed
   - LoRa:
     * Renamed some bandwidth (800->812, 400->406, 200->203, 100->101)
     * `lora_set_cad_params` now uses a struct with a few builders.
+    * Use signed value for extended syncword setting
+  - LR-FHSS: use enum for bandwidth selection
 
 ## [0.12.0] - 2025-11-28
 
