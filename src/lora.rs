@@ -370,10 +370,10 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
         self.cmd_wr(&req).await
     }
 
-    /// Set LoRa Syncword, using 2B notation (2 values on 5b each)
+    /// Set LoRa Syncword, using 2B notation (2 values on 5b signed each)
     /// Public network is (6,8) and private network is (2,4)
-    pub async fn set_lora_syncword_ext(&mut self, s1: u8, s2: u8) -> Result<(), Lr2021Error> {
-        let req = set_lora_syncword_extended_cmd(s1, s2);
+    pub async fn set_lora_syncword_ext(&mut self, s1: i8, s2: i8) -> Result<(), Lr2021Error> {
+        let req = set_lora_syncword_extended_cmd((s1&0x1F) as u8, (s2&0x1F) as u8);
         self.cmd_wr(&req).await
     }
 
@@ -422,6 +422,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Enable compatibility with SX127x for SF6 communication and syncword format
+    /// When enabled, use `set_lora_syncword_ext` to configure syncword with only even value in the range 0..30
     /// Must be called after each SetLoraModulation
     /// The retention enable allows to define a register slot to save this compatibility mode in retention
     pub async fn comp_sx127x_sf6_sw(&mut self, en: bool, ret_en: Option<u8>) -> Result<(), Lr2021Error> {
