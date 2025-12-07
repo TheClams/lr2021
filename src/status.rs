@@ -427,6 +427,13 @@ impl Intr {
 
 }
 
+impl From<u32> for Intr {
+    fn from(value: u32) -> Self {
+        Intr::new(value)
+    }
+}
+
+
 #[cfg(feature = "defmt")]
 impl defmt::Format for Intr {
     fn format(&self, f: defmt::Formatter) {

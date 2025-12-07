@@ -8,6 +8,8 @@
     * `lora_set_cad_params` now uses a struct with a few builders.
     * Use signed value for extended syncword setting
   - LR-FHSS: use enum for bandwidth selection
+  - VBat: now properly returns an unsigned integer
+  - Interrupt: add `From<u32>` to ease conversion from constant
 
 ## [0.12.0] - 2025-11-28
 

@@ -390,11 +390,11 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     /// Return the battery voltage in mV
     /// A resolution of 13b corresponds to roughly 0.82mV
     /// The resolution directly controls how long the measure take: from 8us (8b) to 256us (13b)
-    pub async fn get_vbat(&mut self, res: AdcRes) -> Result<i16, Lr2021Error> {
+    pub async fn get_vbat(&mut self, res: AdcRes) -> Result<u16, Lr2021Error> {
         let req = get_v_bat_req(VbatFormat::Millivolts, res);
-        let mut rsp = TempRsp::new();
+        let mut rsp = VBatRsp::new();
         self.cmd_rd(&req, rsp.as_mut()).await?;
-        Ok(rsp.temp_celsius())
+        Ok(rsp.vbat_mv())
     }
 
     /// Return a random number using entropy from PLL and ADC
