@@ -52,6 +52,7 @@
 //! - [`set_fsk_modulation`](Lr2021::set_fsk_modulation) - Configure bitrate, pulse shaping, bandwidth, and frequency deviation
 //! - [`set_fsk_packet`](Lr2021::set_fsk_packet) - Set packet parameters (preamble, length format, CRC, addressing, whitening)
 //! - [`set_fsk_syncword`](Lr2021::set_fsk_syncword) - Configure synchronization word (value, bit order, length)
+//! - [`set_fsk_long_prmb_support`](Lr2021::set_fsk_long_prmb_support) - Enable long preamble support in FSK (more than 2048 symbols)
 //!
 //! ### Status and Statistics  
 //! - [`get_fsk_packet_status`](Lr2021::get_fsk_packet_status) - Get packet status information (length, RSSI, LQI)

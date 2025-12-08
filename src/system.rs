@@ -43,10 +43,10 @@
 //! - [`rd_mem`](Lr2021::rd_mem) - Read multiple 32-bit words from memory to internal buffer
 //!
 //! ### Measurements
-//! - ['get_temperature'](Lr2021::get_temperature) -  Return temperature in degree Celsius with 5 fractional bits
-//! - ['set_ntc_param'](Lr2021::set_ntc_param) -  Configure NTC parameters
-//! - ['get_vbat'](Lr2021::get_vbat) -  Return the battery voltage in mV
-//! - ['get_random_number'](Lr2021::get_random_number) -  Return a random number using entropy from PLL and ADC
+//! - [`get_temperature`](Lr2021::get_temperature) -  Return temperature in degree Celsius with 5 fractional bits
+//! - [`set_ntc_param`](Lr2021::set_ntc_param) -  Configure NTC parameters
+//! - [`get_vbat`](Lr2021::get_vbat) -  Return the battery voltage in mV
+//! - [`get_random_number`](Lr2021::get_random_number) -  Return a random number using entropy from PLL and ADC
 
 use embassy_time::Duration;
 use embedded_hal::digital::OutputPin;

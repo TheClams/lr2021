@@ -5,9 +5,9 @@
 //! ## Available Methods
 //!
 //! ### FIFO Interrupts
-//! - ['set_fifo_irq_en'](Lr2021::set_fifo_irq_en) - Configure interrupts enable for TX/RX Fifo
-//! - ['set_fifo_irq_cfg'](Lr2021::set_fifo_irq_cfg) - Configure interrupts for TX/RX Fifo (enable with low and high threshold)
-//! - ['get_fifo_irq'](Lr2021::get_fifo_irq) - Return the irqs flag for TX and RX FIFO
+//! - [`set_fifo_irq_en`](Lr2021::set_fifo_irq_en) - Configure interrupts enable for TX/RX Fifo
+//! - [`set_fifo_irq_cfg`](Lr2021::set_fifo_irq_cfg) - Configure interrupts for TX/RX Fifo (enable with low and high threshold)
+//! - [`get_fifo_irq`](Lr2021::get_fifo_irq) - Return the irqs flag for TX and RX FIFO
 //!
 //! ### TX FIFO
 //! - [`wr_tx_fifo_from`](Lr2021::wr_tx_fifo_from) - Write data to TX FIFO from external buffer

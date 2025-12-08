@@ -1,6 +1,6 @@
 //! # API related to LR-FHSS operations
 //!
-//! This module provides an API for configuring and operating the LR1120 chip for LR-FHSS (Long Range Frequency Hopping Spread Spectrum) modulation.
+//! This module provides an API for configuring and operating the LR2021 chip for LR-FHSS (Long Range Frequency Hopping Spread Spectrum) modulation.
 //! LR-FHSS is a modulation scheme designed for long-range, low-power communication with high interference resistance through frequency hopping.
 //! It is particularly useful for regulatory compliance (e.g., FCC) and applications requiring robust communication in noisy environments.
 //!
@@ -9,18 +9,18 @@
 //! Here's a typical sequence to initialize the chip for LR-FHSS operations:
 //!
 //! ```rust,no_run
-//! use lr1120::radio::PacketType;
-//! use lr1120::lrfhss::{LrfhssCr, Grid, Hopping, LrfhssBw};
+//! use lr2021::radio::PacketType;
+//! use lr2021::lrfhss::{LrfhssCr, Grid, Hopping, LrfhssBw};
 //!
 //! // Set packet type to LR-FHSS
-//! lr1120.set_packet_type(PacketType::LrFhss).await.expect("Setting packet type");
+//! lr2021.set_packet_type(PacketType::LrFhss).await.expect("Setting packet type");
 //!
 //! // Configure syncword (default is 0x2C0F7995)
-//! lr1120.set_lrfhss_syncword(0x2C0F7995).await.expect("Setting syncword");
+//! lr2021.set_lrfhss_syncword(0x2C0F7995).await.expect("Setting syncword");
 //!
 //! // Build LR-FHSS packet with payload
 //! let payload = b"Hello, LR-FHSS!";
-//! lr1120.lrfhss_build_packet(
+//! lr2021.lrfhss_build_packet(
 //!     1,                      // Sync header count
 //!     LrfhssCr::Cr5p6,        // Coding rate: 5/6
 //!     Grid::Grid25,           // Frequency grid: 25.39kHz
@@ -32,14 +32,14 @@
 //! ).await.expect("Building LR-FHSS packet");
 //!
 //! // Transmit the packet\
-//! lr1120.set_tx(0).await.expect("Starting transmission");
+//! lr2021.set_tx(0).await.expect("Starting transmission");
 //! ```
 //!
 //! ## Available Methods
 //!
-//! ### Core Configuration
-//! - [`lrfhss_build_packet`](Lr1120::lrfhss_build_packet) - Encode payload and configure internal hopping table for LR-FHSS transmission
-//! - [`set_lrfhss_syncword`](Lr1120::set_lrfhss_syncword) - Configure LR-FHSS syncword (4 bytes, default: 0x2C0F7995)
+//! - [`lrfhss_build_packet`](Lr2021::lrfhss_build_packet) - Encode payload and configure internal hopping table for LR-FHSS transmission
+//! - [`set_lrfhss_syncword`](Lr2021::set_lrfhss_syncword) - Configure LR-FHSS syncword (4 bytes, default: 0x2C0F7995)
+//! - [`set_lrfhss_hopping`](Lr2021::set_lrfhss_hopping) - Configure LR-FHSS hopping table
 
 use embedded_hal::digital::OutputPin;
 use embedded_hal_async::spi::SpiBus;

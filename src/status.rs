@@ -1,3 +1,16 @@
+//! # Device status and interrupts
+//!
+//! The device status is represented by two bytes provided on each command.
+//! It contains:
+//! - Information about previous command (Ok, fail, error, ...)
+//! - A flag for interrupt pending
+//! - The source of the last reset (manual, analog, watchdog, ...)
+//! - Current chip Mode (Sleep, Standby, Tx, RX, ...)
+//!
+//! The interrupt structure `Intr` allows to both configrue which interrupt should be assigned to a pin
+//! with the command [`set_dio_irq`](Lr2021::set_dio_irq) and easily get which interrupt is currently raised
+//! after a [`get_status`](Lr2021::get_status) or [`get_and_clear_irq`](Lr2021::get_and_clear_irq).
+
 use super::Lr2021Error;
 
 /// Status sent at the beginning of each SPI command

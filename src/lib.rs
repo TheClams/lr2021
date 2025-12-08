@@ -14,7 +14,6 @@
 //! - **Flexible busy pin handling** - Both blocking polling and async interrupt-based modes
 //! - **HAL abstraction** - Uses `embedded-hal` and `embedded-hal-async` traits for hardware portability
 //! - **Comprehensive error handling** - Detailed error types for robust error management
-//! - **Optimized SPI communication** - Efficient command buffering and status management
 //!
 //! ## Supported Protocols
 //!
@@ -124,9 +123,13 @@ pub trait BusyPin: Sealed {
     #[allow(async_fn_in_trait)]
     async fn wait_ready(pin: &mut Self::Pin, timeout: Duration) -> Result<(), Lr2021Error>;
 }
+
+/// Zero-Size marker structure for Busy pin supporting only blocking operations (polling)
 pub struct BusyBlocking<I> {
     _marker: PhantomData<I>
 }
+
+/// Zero-Size marker structure for Busy pin supporting async operations (implements Wait trait)
 pub struct BusyAsync<I> {
     _marker: PhantomData<I>
 }

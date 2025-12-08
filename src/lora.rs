@@ -36,17 +36,18 @@
 //! ### Status and Statistics
 //! - [`get_lora_packet_status`](Lr2021::get_lora_packet_status) - Get basic packet status information
 //! - [`get_lora_rx_stats`](Lr2021::get_lora_rx_stats) - Get reception statistics
-//! - [`get_lora_fei`](Lr2021::get_lora_fei) - Return last frequency estimation
 //!
 //! ### Channel Activity Detection (CAD)
 //! - [`set_lora_cad_params`](Lr2021::set_lora_cad_params) - Configure CAD parameters
 //! - [`set_lora_cad`](Lr2021::set_lora_cad) - Start channel activity detection
 //!
 //! ### Misc Features
-//! - [`comp_sx127x_en`](Lr2021::comp_sx127x_en) - Enable SX127x compatibility for SF6
+//! - [`comp_sx127x_sf6_sw`](Lr2021::comp_sx127x_sf6_sw) - Enable SX127x compatibility for SF6 and syncword format
+//! - [`comp_sx127x_hopping`](Lr2021::comp_sx127x_hopping) - Enable compatibility with SX127x for frequency hopping communication
 //! - [`set_lora_preamble_modulation`](Lr2021::set_lora_preamble_modulation) - Enable preamble phase modulation
 //! - [`set_lora_blanking`](Lr2021::set_lora_blanking) - Configure blanking (algorithm to reduce impact of interferers)
 //! - [`set_lora_hopping`](Lr2021::set_lora_hopping) - Configure intra-packet frequency hopping
+//! - [`set_lora_freq_range`](Lr2021::set_lora_freq_range) - Configure the frequency error range supported by detection
 //!
 //! ### Side-Detection (Multi-SF receiver)
 //! - [`set_lora_sidedet_cfg`](Lr2021::set_lora_sidedet_cfg) - Configure side-detector for multiple SF detection

@@ -1,3 +1,44 @@
+//! # API related to BPSK TX operations
+//!
+//! This module provides an API for configuring and operating the LR2021 chip for BPSK (Binary Phase Shift Keying) transmission.
+//! BPSK is used for Sigfox communication, supporting differential encoding modes and configurable packet parameters.
+//!
+//! ## Quick Start
+//!
+//! Here's a typical sequence to initialize the chip for BPSK TX operations:
+//!
+//! ```rust,no_run
+//! use lr2021::radio::PacketType;
+//! use lr2021::bpsk_tx::{BpskMode, SigfoxMsg, SigfoxRank, DiffModeEn};
+//! use lr2021::PulseShape;
+//!
+//! // Set packet type to BPSK TX
+//! lr2021.set_packet_type(PacketType::BpskTx).await.expect("Setting packet type");
+//!
+//! // Configure BPSK modulation (600 bps, no pulse shaping, differential encoding enabled)
+//! lr2021.set_bpsk_modulation(
+//!     600,                    // Bitrate: 600 bps
+//!     PulseShape::None,      // No pulse shaping
+//!     DiffModeEn::On,        // Differential encoding enabled
+//!     false,                  // Differential mode initial value
+//!     false                   // Differential mode parity
+//! ).await.expect("Setting BPSK modulation");
+//!
+//! // Configure packet parameters
+//! lr2021.set_bpsk_packet(
+//!     12,                     // Payload length: 12 bytes
+//!     BpskMode::Sigfox,      // Sigfox mode
+//!     SigfoxMsg::Data,       // Data message type
+//!     SigfoxRank::Rank0      // Sigfox rank
+//! ).await.expect("Setting packet parameters");
+//! ```
+//!
+//! ## Available Methods
+//!
+//! ### Core BPSK Methods
+//! - [`set_bpsk_modulation`](Lr2021::set_bpsk_modulation) - Configure bitrate, pulse shaping, and differential encoding parameters
+//! - [`set_bpsk_packet`](Lr2021::set_bpsk_packet) - Set packet parameters (payload length, BPSK mode, Sigfox message type and rank)
+//!
 use embedded_hal::digital::OutputPin;
 use embedded_hal_async::spi::SpiBus;
 
