@@ -210,7 +210,7 @@ impl CmdBuffer {
         &self.0[2..]
     }
 
-    /// Give read/write access to the the last 256 bytes
+    /// Give read/write access to the last 256 bytes
     pub fn data_mut(&mut self) -> &mut [u8] {
         &mut self.0[2..]
     }
@@ -219,6 +219,12 @@ impl CmdBuffer {
 impl Default for CmdBuffer {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+impl AsMut<[u8]> for CmdBuffer {
+    fn as_mut(&mut self) -> &mut [u8] {
+        &mut self.0[2..]
     }
 }
 
@@ -388,12 +394,12 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
         self.wait_ready(Duration::from_millis(100)).await?;
         self.nss.set_low().map_err(|_| Lr2021Error::Pin)?;
         self.spi
-            .transfer_in_place(&mut self.buffer.data_mut()[..len]).await
+            .transfer_in_place(&mut self.buffer.as_mut()[..len]).await
             .map_err(|_| Lr2021Error::Spi)?;
         self.nss.set_high().map_err(|_| Lr2021Error::Pin)
     }
 
-    /// Send content of the local buffer as a command and read a response
+    /// Send content of the local buffer as a command and read a response in the provided buffer
     pub async fn cmd_buf_rd(&mut self, len: usize, rsp: &mut [u8]) -> Result<(), Lr2021Error> {
         self.cmd_buf_wr(len).await?;
         // Wait for busy to go down before reading the response

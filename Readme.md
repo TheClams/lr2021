@@ -12,8 +12,8 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-lr2021 = "0.10.0"
-embassy-time = "0.3"
+lr2021 = "0.13"
+embassy-time = "0.5"
 ```
 
 Basic usage:
@@ -25,6 +25,7 @@ let mut radio = Lr2021::new(reset_pin, busy_pin, spi_device, nss_pin);
 radio.reset().await?;
 // Configure and use your preferred protocol
 ```
+
 
 ## Hardware Requirements
 

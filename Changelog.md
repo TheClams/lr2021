@@ -1,5 +1,13 @@
 # Change Log
 
+## [0.13.1] - 2025-12-06
+
+### Fixed
+  - LoRa: fix the `set_lora_hopping` methods not sending the command properly
+
+### Internal
+  - Internal buffer now implements AsMut
+
 ## [0.13.0] - 2025-12-06
 
 ### Changed

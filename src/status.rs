@@ -8,8 +8,8 @@
 //! - Current chip Mode (Sleep, Standby, Tx, RX, ...)
 //!
 //! The interrupt structure `Intr` allows to both configrue which interrupt should be assigned to a pin
-//! with the command [`set_dio_irq`](Lr2021::set_dio_irq) and easily get which interrupt is currently raised
-//! after a [`get_status`](Lr2021::get_status) or [`get_and_clear_irq`](Lr2021::get_and_clear_irq).
+//! with the command [`set_dio_irq`](crate::Lr2021::set_dio_irq) and easily get which interrupt is currently raised
+//! after a [`get_status`](crate::Lr2021::get_status) or [`get_and_clear_irq`](crate::Lr2021::get_and_clear_irq).
 
 use super::Lr2021Error;
 

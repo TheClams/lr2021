@@ -359,7 +359,7 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     }
 
     /// Return temperature in °C with 5 fractional bits
-    /// When the selected source is an NTC, its parameter must be configure with [`set_ntc_params_cmd`](Lr2021::set_ntc_params_cmd)
+    /// When the selected source is an NTC, its parameter must be configure with [`set_ntc_param`](Lr2021::set_ntc_param)
     /// The resolution directly controls how long the measure take: from 8us (8b) to 256us (13b)
     pub async fn get_temperature(&mut self, src: TempSrc, res: AdcRes) -> Result<i16, Lr2021Error> {
         let req = get_temp_req(src, res);

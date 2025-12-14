@@ -498,15 +498,16 @@ impl<O,SPI, M> Lr2021<O,SPI, M> where
     /// Provide an empty slice of hops to disable hopping
     /// Max number of hops if 40
     pub async fn set_lora_hopping(&mut self, period: u16, freq_hops: &[u32]) -> Result<(), Lr2021Error> {
-        self.buffer_mut()[0] = 0x02;
-        self.buffer_mut()[1] = 0x2C;
-        self.buffer_mut()[2] = if freq_hops.is_empty() {0} else {0x40 | ((period>>8) as u8 & 0x1F)};
-        self.buffer_mut()[3] = (period & 0xFF) as u8;
+        let buffer = self.buffer.as_mut();
+        buffer[0] = 0x02;
+        buffer[1] = 0x2C;
+        buffer[2] = if freq_hops.is_empty() {0} else {0x40 | ((period>>8) as u8 & 0x1F)};
+        buffer[3] = (period & 0xFF) as u8;
         for (i, f) in freq_hops.iter().enumerate() {
-            self.buffer_mut()[4+4*i] = ((f >> 24) & 0xFF) as u8;
-            self.buffer_mut()[5+4*i] = ((f >> 16) & 0xFF) as u8;
-            self.buffer_mut()[6+4*i] = ((f >>  8) & 0xFF) as u8;
-            self.buffer_mut()[7+4*i] = ( f        & 0xFF) as u8;
+            buffer[4+4*i] = ((f >> 24) & 0xFF) as u8;
+            buffer[5+4*i] = ((f >> 16) & 0xFF) as u8;
+            buffer[6+4*i] = ((f >>  8) & 0xFF) as u8;
+            buffer[7+4*i] = ( f        & 0xFF) as u8;
         }
         let len = 3 + 4*freq_hops.len();
         self.cmd_buf_wr(len).await
