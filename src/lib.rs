@@ -93,14 +93,17 @@ pub mod cmd;
 pub mod radio;
 pub mod lora;
 pub mod ble;
-pub mod flrc;
-pub mod ook;
 pub mod fsk;
+#[cfg(feature = "fskadv")]
+pub mod flrc;
+#[cfg(feature = "fskadv")]
 pub mod zigbee;
+#[cfg(feature = "fskadv")]
 pub mod zwave;
-pub mod lrfhss;
+pub mod ook;
 pub mod wmbus;
 pub mod wisun;
+pub mod lrfhss;
 pub mod bpsk_tx;
 mod constants;
 

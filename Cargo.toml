@@ -1,6 +1,6 @@
 [package]
 name = "lr2021"
-version = "0.13.1"
+version = "0.14.0"
 edition = "2024"
 license = "MIT"
 description = "Driver for Semtech LR2021"
@@ -11,6 +11,12 @@ keywords = ["driver", "LR2021", "transceiver"]
 
 [features]
 defmt = ["dep:defmt"]
+# Enable 2.4Ghz RF path (LR2021/LR2022)
+rf2g4 = []
+# Enable Adavanced FSK like FLRC/Zigbee/ZWave (LR2021)
+fskadv = []
+# Default correspond to LR2021
+default = ["rf2g4","fskadv"]
 
 [dependencies]
 

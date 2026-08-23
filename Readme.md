@@ -12,7 +12,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-lr2021 = "0.13"
+lr2021 = "0.14"
 embassy-time = "0.5"
 ```
 
@@ -26,10 +26,9 @@ radio.reset().await?;
 // Configure and use your preferred protocol
 ```
 
-
 ## Hardware Requirements
 
-- Semtech LR2021 transceiver module
+- Semtech LR20xx transceiver module
 - SPI-capable microcontroller
 - 3 GPIO pins: Reset (output), Busy (input), NSS/CS (output) (not counting SPI SCK/MISO/MOSI)
 - Embassy-compatible async runtime
@@ -54,3 +53,30 @@ radio.reset().await?;
 | WMBus | **Partial** | Basic communication between two LR2021 devices |
 | LR-FHSS | **Unplanned** | TX only (require gateway for test) |
 | Sigfox (BPSK) | **Unplanned** | TX only (require gateway for test) |
+
+# LR20xx family
+The driver supports the whole LR20xx chip family: LR2012/LR2021/LR2022.
+The only difference between each series is chip is the features supported:
+ - LR2021 supports all possible features (enabled by default)
+ - LR2022 does not support advanced FSK modulation such as FLRC/Zigbee/Zwave
+ - LR2012 does not support advanced modulation nor 2.4GHz path
+
+Features in the driver allows to make sure at compile time you are not using supported commands.
+
+## LR2012
+When targeting the LR2012 simply disable the default feature:
+```toml
+[dependencies]
+lr2021 = {version = "0.14", default-features = false}
+```
+
+## LR2022
+When targeting the LR2022, disable the default feature and enable the RF 2.4GHz path:
+```toml
+[dependencies]
+lr2021 = {version = "0.14", default-features = false}
+
+[features]
+default = ["lr2021/rf2g4"]
+```
+

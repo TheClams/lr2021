@@ -7,6 +7,7 @@ use crate::status::Status;
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum RxPath {
     LfPath = 0,
+    #[cfg(feature = "rf2g4")]
     HfPath = 1,
 }
 
